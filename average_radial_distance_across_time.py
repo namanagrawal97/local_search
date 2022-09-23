@@ -109,3 +109,17 @@ for genotype in genotypelist:
     rad_dist_df = pd.DataFrame(dict([ (k,pd.Series(v)) for k,v in radial_distances.items() ]))
     rad_dist_df['mean']=rad_dist_df.mean(axis=1)
     rad_dist_dict[genotype]=list(rad_dist_df['mean'])
+    
+fig4,ax=plt.subplots()
+ax.set_title("Radial Distance over time")
+ax.set_xlabel("time")
+ax.set_ylabel("Radial Distance from food")
+
+for col in rad_dist_dict.keys():
+        print(col)
+        ax.plot(np.arange(0,240,1), rad_dist_dict[col], label=col)
+        
+ax.legend(labels=rad_dist_dict.keys())
+# # ax.plot(np.arange(0,realtrajtime,1), radial_distance_all['mean'], label='mean')
+plt.show()
+# fig4.savefig("{}_{}hr Radial Distance_screening.png".format(food, starvation),format='png', dpi=600, bbox_inches = 'tight')
