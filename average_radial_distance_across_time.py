@@ -31,7 +31,7 @@ foodlist.remove('ss46202')
 # foodlist.remove('w1118')
 # foodlist=foodlist[0:39]
 genotypelist=foodlist
-genotypelist=["w1118","ss50143"]
+genotypelist=["ss50143","w1118"]
 starvation="24"
 time_list=[5,10,30,60]
 
@@ -46,6 +46,7 @@ def find_index(l,t):
             continue
 
 rad_dist_dict={}
+
 for genotype in genotypelist:
     
     radial_distances={}
@@ -64,9 +65,9 @@ for genotype in genotypelist:
         """
         
         df=pd.read_csv(u, header=None)
-        print("before",df.shape[1])
-        df=df.dropna(axis=1, how='all',thresh=40000)
-        print("after",df.shape[1])
+        # print("before",df.shape[1])
+        # df=df.dropna(axis=1, how='all',thresh=40000)
+        # print("after",df.shape[1])
         if(df.shape[1]==10):
             data_header = ['Time', 'Latency', 'Fx1', 'Fy1', 'Fx2', 'Fy2', 'Fx3', 'Fy3','Fx4','Fy4']
         elif(df.shape[1]==8):
@@ -112,14 +113,15 @@ for genotype in genotypelist:
     
 fig4,ax=plt.subplots()
 ax.set_title("Radial Distance over time")
-ax.set_xlabel("time")
+ax.set_xlabel("time (s * 24)")
 ax.set_ylabel("Radial Distance from food")
 
 for col in rad_dist_dict.keys():
         print(col)
         ax.plot(np.arange(0,240,1), rad_dist_dict[col], label=col)
         
+# ax.set_yticklabels([0,10], fontsize=5)
 ax.legend(labels=rad_dist_dict.keys())
 # # ax.plot(np.arange(0,realtrajtime,1), radial_distance_all['mean'], label='mean')
 plt.show()
-# fig4.savefig("{}_{}hr Radial Distance_screening.png".format(food, starvation),format='png', dpi=600, bbox_inches = 'tight')
+fig4.savefig("results\\Avg Rad_Dist over time comparison.png",format='png', dpi=600, bbox_inches = 'tight')
