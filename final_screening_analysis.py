@@ -168,12 +168,6 @@ for cutoff in time_list:
                     inst_vel_all = [x for x in inst_vel_all if np.isnan(x) == False]
                     rad_dist_all = [x for x in rad_dist_all if np.isnan(x) == False]
                     tot_dist_all = [x for x in tot_dist_all if np.isnan(x) == False]                
-        # w1, pvalue1 = stats.shapiro(rad_dist_all)
-        # w, pvalue = stats.shapiro(inst_vel_all)
-        # # print(w, pvalue)
-        # number_of_flies[genotype]=index
-        # rad_dist_swt_dict[genotype]=pvalue1
-        # inst_vel_swt_dict[genotype]=pvalue
             
         inst_vel_med_dict[genotype]=np.median(inst_vel_all)
         rad_dist_med_dict[genotype]=np.median(rad_dist_all)
