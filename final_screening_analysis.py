@@ -409,16 +409,3 @@ for ticker, ax in zip(list(inst_vel_dict_final_labels), axs.ravel()):
 fig.savefig('results\\Ind_gen_qq_inst_vel.png',format='png', dpi=600, bbox_inches = 'tight')
 plt.show()
 
-
-"""
-Attempt at Mann-Whitney U test
-"""
-for genotypes_rad in rad_dist_dict_final_labels:
-    U1, p1 = mannwhitneyu(rad_dist_dict_final[genotypes_rad], rad_dist_dict_final["w1118"], method="auto")
-    rad_dist_mwu_dict[genotypes_rad]=p1#,U1,number_of_flies[genotypes_rad]
-for genotypes_vel in inst_vel_dict_final_labels:
-    U2, p2 = mannwhitneyu(inst_vel_dict_final[genotypes_vel], inst_vel_dict_final["w1118"], method="auto")
-    inst_vel_mwu_dict[genotypes_vel]=p2#,U2,number_of_flies[genotypes_vel]
-for genotypes_tot in tot_dist_dict_final_labels:
-    U3, p3 = mannwhitneyu(tot_dist_dict_final[genotypes_tot], tot_dist_dict_final["w1118"], method="auto")
-    tot_dist_mwu_dict[genotypes_tot]=p3#,U3,number_of_flies[genotypes_tot]
