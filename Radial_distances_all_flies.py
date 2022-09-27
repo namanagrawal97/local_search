@@ -1,9 +1,4 @@
-# -*- coding: utf-8 -*-
-"""
-Created on Fri Sep 23 14:27:56 2022
 
-@author: Yapicilab
-"""
 import matplotlib.pyplot as plt
 import seaborn as sns
 import numpy as np
@@ -31,7 +26,7 @@ foodlist.remove('ss46202')
 # foodlist.remove('w1118')
 # foodlist=foodlist[0:39]
 genotypelist=foodlist
-# genotypelist=["ss32463","w1118","ss45941","ss15725"]
+genotypelist=["ss31362"]
 starvation="24"
 # time_list=[5,10,30,60]
 
@@ -113,40 +108,22 @@ for genotype in genotypelist:
                 radial_distances[index]=rad_dist
 
     rad_dist_df = pd.DataFrame(dict([ (k,pd.Series(v)) for k,v in radial_distances.items() ]))
-    rad_dist_df['mean']=rad_dist_df.mean(axis=1)
-    rad_dist_dict[genotype]=list(rad_dist_df['mean'])
-    number_of_flies[genotype]=index
+    
+    fig, axs = plt.subplots(nrows=3, ncols=3, figsize=(12, 12))
+    plt.subplots_adjust(hspace=0.5)
+    fig.suptitle(" {} Radial Distance ({}s after food) distribution".format(genotype, time_thres), fontsize=18, y=0.95)
 
-fig4,ax=plt.subplots()
-ax.set_title("Radial Distance over time")
-ax.set_xlabel("time (s * 24)")
-ax.set_ylabel("Radial Distance from food")
+    # loop through tickers and axes
+    for ticker, ax in zip(list(rad_dist_df.columns), axs.ravel()):
+        ax.plot(np.arange(0,time_thres*24,1), rad_dist_df[ticker])
+        ax.plot(np.arange(0,time_thres*24,1), [60]*time_thres*24) 
+        # ax.tick_params(axis='y', labelrotation = 0, size=2)
+        ax.set_title("{}".format(ticker),fontsize=9)
+        ax.set_ylim(0,540)
+        ax.set_xlabel("")
+        # ax.set_xticks(np.arange(0,time_thres,1))
+        # ax.set(ylabel=None)
+        # ax.text(450, 1000, "n={}".format(number_of_flies[ticker]))
+    # fig.savefig('results\\rad_dist_all_flies\\{}_rad_dist10Seconds.png'.format(genotype),format='png', dpi=600, bbox_inches = 'tight')
+    plt.show()
 
-for col in rad_dist_dict.keys():
-        print(col)
-        ax.plot(np.arange(0,time_thres*24,1), rad_dist_dict[col], label=col)
-        
-# ax.set_yticklabels([0,10], fontsize=5)
-ax.legend(loc='center left', bbox_to_anchor=(1, 0.5),labels=rad_dist_dict.keys())
-# # ax.plot(np.arange(0,realtrajtime,1), radial_distance_all['mean'], label='mean')
-plt.show()
-# fig4.savefig("results\\Avg Rad_Dist over {}seconds comparison.png".format(time_thres),format='png', dpi=600, bbox_inches = 'tight')
-
-
-fig, axs = plt.subplots(nrows=7, ncols=8, figsize=(25, 12))
-plt.subplots_adjust(hspace=0.5)
-fig.suptitle("Individual genotype Average Radial Distance (10s after food) distribution", fontsize=18, y=0.95)
-
-# loop through tickers and axes
-for ticker, ax in zip(list(rad_dist_dict.keys()), axs.ravel()):
-    ax.plot(np.arange(0,time_thres*24,1), rad_dist_dict[ticker], label=col)
-    ax.plot(np.arange(0,time_thres*24,1), rad_dist_dict["w1118"], label=col) 
-    # ax.tick_params(axis='y', labelrotation = 0, size=2)
-    ax.set_title("{} (n={})".format(ticker,number_of_flies[ticker]),fontsize=9)
-    # ax.set_xlim(0,540)
-    ax.set_xlabel("")
-    ax.set_yticks([])
-    ax.set(ylabel=None)
-    # ax.text(450, 1000, "n={}".format(number_of_flies[ticker]))
-fig.savefig('results\\Ind_gen_distb_avg_rad_dist10Seconds.png',format='png', dpi=600, bbox_inches = 'tight')
-plt.show()
