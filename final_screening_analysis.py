@@ -35,6 +35,7 @@ genotypelist=foodlist
 # genotypelist=["w1118"]
 starvation="24"
 time_list=[5,10,30,60]
+# time_list=[10]
 
 real_food_all=pd.read_csv('food_timing_multi_lines.csv')
 
@@ -101,7 +102,7 @@ for cutoff in time_list:
             
             df=pd.read_csv(u, header=None)
             print("before",df.shape[1])
-            df=df.dropna(axis=1, how='all',thresh=40000)
+            df=df.dropna(axis=1,thresh=20000)
             print("after",df.shape[1])
             if(df.shape[1]==10):
                 data_header = ['Time', 'Latency', 'Fx1', 'Fy1', 'Fx2', 'Fy2', 'Fx3', 'Fy3','Fx4','Fy4']
@@ -240,91 +241,125 @@ for cutoff in time_list:
     rad_dist_mean_all_df.to_csv("results\\rad_dist_mean_all{}_df.csv".format(cutoff),index=False)
     inst_vel_mean_all_df.to_csv("results\\inst_vel_mean_all{}_df.csv".format(cutoff),index=False)
 
-"""
-PLOTTING
-"""
-
-"""
-Here we generate comparative boxplots for genotypes
-"""
-
-
-fig, ax= plt.subplots()
-sns.set_style("white")
-ax = sns.boxplot(data=rad_dist_dict_final_data, palette="Set3", showfliers = False, showmeans=False, linewidth=1, fliersize=3, orient="h")
-# ax = sns.violinplot(data=rad_dist_dict_final_data, split=True)
-ax.set_xlabel('Radial Distance')
-ax.set_yticklabels(rad_dist_dict_final_labels, fontsize=5)
-ax.tick_params(axis='x', labelrotation = 0, size=2)
-ax.set_title('Radial Distance 10 seconds after first contact with Food', fontsize=13)
-ax.set_ylabel('Genotypes')
-# ax.yaxis.grid(True)
-ax.xaxis.grid(True)
-plt.show()
-# fig.savefig('radial_distance_10seconds.png',format='png', dpi=600, bbox_inches = 'tight')
-
-fig, ax= plt.subplots()
-sns.set_style("white")
-ax = sns.boxplot(data=inst_vel_dict_final_data, palette="Set3", showfliers = False, showmeans=False, linewidth=1, fliersize=3, orient="h")
-# ax = sns.stripplot(data=data2, color=".25",size=3,orient="h")
-ax.set_xlabel('Instantenous Velocity')
-ax.set_yticklabels(inst_vel_dict_final_labels, fontsize=5)
-ax.tick_params(axis='x', labelrotation = 0, size=2)
-ax.set_title('Instantenous Velocity 10 seconds after first contact with Food', fontsize=13)
-ax.set_ylabel('Genotypes')
-# ax.yaxis.grid(True)
-ax.xaxis.grid(True)
-plt.show()
-# fig.savefig('inst_vel_10seconds.png',format='png', dpi=600, bbox_inches = 'tight')
-
-fig, ax= plt.subplots()
-sns.set_style("white")
-ax = sns.boxplot(data=tot_dist_dict_final_data, palette="Set3", showfliers = False, showmeans=False, linewidth=1, fliersize=3, orient="h")
-ax = sns.stripplot(data=tot_dist_dict_final_data,color=".25",size=2, orient='h')
-# ax = sns.violinplot(data=rad_dist_dict_final_data, split=True)
-ax.set_xlabel('Distance')
-ax.set_yticklabels(tot_dist_dict_final_labels, fontsize=5)
-ax.tick_params(axis='x', labelrotation = 0, size=2)
-ax.set_title('Distance travelled before touching wall', fontsize=13)
-ax.set_ylabel('Genotypes')
-# ax.yaxis.grid(True)
-ax.xaxis.grid(True)
-plt.show()
-fig.savefig('results\\total_distance_before_wall_touching.png',format='png', dpi=600, bbox_inches = 'tight')
-
-
-"""
-Here we generate comparative boxplots for genotypes, but median only
-"""
-
-
-fig, ax= plt.subplots()
-sns.set_style("white")
-ax = sns.boxplot(data=rad_dist_med_all_df, palette="Set3", showfliers = False, showmeans=False, linewidth=1, fliersize=3, orient="h")
-ax = sns.stripplot(data=rad_dist_med_all_df,size=2,color=".25", orient="h")
-ax.set_xlabel('Radial Distance')
-ax.set_yticklabels(rad_dist_med_all_df.columns, fontsize=5)
-ax.tick_params(axis='x', labelrotation = 0, labelsize=5)
-ax.set_title('Radial Distance 10 seconds after first contact with Food', fontsize=13)
-ax.set_ylabel('Genotypes')
-# ax.yaxis.grid(True)
-ax.xaxis.grid(True)
-plt.show()
-fig.savefig('results\\radial_distance_10seconds_medians.png',format='png', dpi=600, bbox_inches = 'tight')
-
-fig, ax= plt.subplots()
-sns.set_style("white")
-ax = sns.boxplot(data=inst_vel_med_all_df, palette="Set3", showfliers = False, showmeans=False, linewidth=1, fliersize=3, orient="h")
-ax = sns.stripplot(data=inst_vel_med_all_df, color=".25",size=2, orient="h")
-ax.set_xlabel('Instantaneous Velocity')
-ax.set_yticklabels(inst_vel_med_all_df.columns, fontsize=5)
-ax.tick_params(axis='x', labelrotation = 0, size=2)
-ax.set_title('Instantaneous Velocity 10 seconds after first contact with Food', fontsize=13)
-ax.set_ylabel('Genotypes')
-# ax.yaxis.grid(True)
-ax.xaxis.grid(True)
-plt.show()
-fig.savefig('results\\inst_vel_10seconds_medians.png',format='png', dpi=600, bbox_inches = 'tight')
+    # """
+    # PLOTTING
+    # """
+    
+    # """
+    # Here we generate comparative boxplots for genotypes
+    # """
+    
+    
+    # fig, ax= plt.subplots()
+    # sns.set_style("white")
+    # ax = sns.boxplot(data=rad_dist_dict_final_data, palette="Set3", showfliers = False, showmeans=False, linewidth=1, fliersize=3, orient="h")
+    # # ax = sns.violinplot(data=rad_dist_dict_final_data, split=True)
+    # ax.set_xlabel('Radial Distance')
+    # ax.set_yticklabels(rad_dist_dict_final_labels, fontsize=5)
+    # ax.tick_params(axis='x', labelrotation = 0, size=2)
+    # ax.set_title('Radial Distance 10 seconds after first contact with Food', fontsize=13)
+    # ax.set_ylabel('Genotypes')
+    # # ax.yaxis.grid(True)
+    # ax.xaxis.grid(True)
+    # plt.show()
+    # # fig.savefig('radial_distance_10seconds.png',format='png', dpi=600, bbox_inches = 'tight')
+    
+    # fig, ax= plt.subplots()
+    # sns.set_style("white")
+    # ax = sns.boxplot(data=inst_vel_dict_final_data, palette="Set3", showfliers = False, showmeans=False, linewidth=1, fliersize=3, orient="h")
+    # # ax = sns.stripplot(data=data2, color=".25",size=3,orient="h")
+    # ax.set_xlabel('Instantenous Velocity')
+    # ax.set_yticklabels(inst_vel_dict_final_labels, fontsize=5)
+    # ax.tick_params(axis='x', labelrotation = 0, size=2)
+    # ax.set_title('Instantenous Velocity 10 seconds after first contact with Food', fontsize=13)
+    # ax.set_ylabel('Genotypes')
+    # # ax.yaxis.grid(True)
+    # ax.xaxis.grid(True)
+    # plt.show()
+    # # fig.savefig('inst_vel_10seconds.png',format='png', dpi=600, bbox_inches = 'tight')
+    
+    # fig, ax= plt.subplots()
+    # sns.set_style("white")
+    # ax = sns.boxplot(data=tot_dist_dict_final_data, palette="Set3", showfliers = False, showmeans=False, linewidth=1, fliersize=3, orient="h")
+    # ax = sns.stripplot(data=tot_dist_dict_final_data,color=".25",size=2, orient='h')
+    # # ax = sns.violinplot(data=rad_dist_dict_final_data, split=True)
+    # ax.set_xlabel('Distance')
+    # ax.set_yticklabels(tot_dist_dict_final_labels, fontsize=5)
+    # ax.tick_params(axis='x', labelrotation = 0, size=2)
+    # ax.set_title('Distance travelled before touching wall', fontsize=13)
+    # ax.set_ylabel('Genotypes')
+    # # ax.yaxis.grid(True)
+    # ax.xaxis.grid(True)
+    # plt.show()
+    # # fig.savefig('results\\total_distance_before_wall_touching.png',format='png', dpi=600, bbox_inches = 'tight')
+    
+    
+    # """
+    # Here we generate comparative boxplots for genotypes, but median only
+    # """
+    
+    
+    # fig, ax= plt.subplots()
+    # sns.set_style("white")
+    # ax = sns.boxplot(data=rad_dist_med_all_df, palette="Set3", showfliers = False, showmeans=False, linewidth=1, fliersize=3, orient="h")
+    # ax = sns.stripplot(data=rad_dist_med_all_df,size=2,color=".25", orient="h")
+    # ax.set_xlabel('Radial Distance')
+    # ax.set_yticklabels(rad_dist_med_all_df.columns, fontsize=5)
+    # ax.tick_params(axis='x', labelrotation = 0, labelsize=5)
+    # ax.set_title('Radial Distance 10 seconds after first contact with Food', fontsize=13)
+    # ax.set_ylabel('Genotypes')
+    # # ax.yaxis.grid(True)
+    # ax.xaxis.grid(True)
+    # plt.show()
+    # # fig.savefig('results\\radial_distance_10seconds_medians.png',format='png', dpi=600, bbox_inches = 'tight')
+    
+    # fig, ax= plt.subplots()
+    # sns.set_style("white")
+    # ax = sns.boxplot(data=inst_vel_med_all_df, palette="Set3", showfliers = False, showmeans=False, linewidth=1, fliersize=3, orient="h")
+    # ax = sns.stripplot(data=inst_vel_med_all_df, color=".25",size=2, orient="h")
+    # ax.set_xlabel('Instantaneous Velocity')
+    # ax.set_yticklabels(inst_vel_med_all_df.columns, fontsize=5)
+    # ax.tick_params(axis='x', labelrotation = 0, size=2)
+    # ax.set_title('Instantaneous Velocity 10 seconds after first contact with Food', fontsize=13)
+    # ax.set_ylabel('Genotypes')
+    # # ax.yaxis.grid(True)
+    # ax.xaxis.grid(True)
+    # plt.show()
+    # # fig.savefig('results\\inst_vel_10seconds_medians.png',format='png', dpi=600, bbox_inches = 'tight')
+    
+    """
+    Here we generate comparative boxplots for genotypes, but mean only
+    """
+    
+    
+    fig, ax= plt.subplots()
+    sns.set_style("white")
+    ax = sns.boxplot(data=rad_dist_mean_all_df, palette="Set3", showfliers = False, showmeans=False, linewidth=1, fliersize=3, orient="h")
+    ax = sns.stripplot(data=rad_dist_mean_all_df,size=2,color=".25", orient="h")
+    ax.set_xlabel('Radial Distance')
+    ax.set_yticklabels(rad_dist_mean_all_df.columns, fontsize=5)
+    ax.tick_params(axis='x', labelrotation = 0, labelsize=5)
+    ax.set_title('Average Radial Distance {} seconds after first contact with Food'.format(cutoff), fontsize=13)
+    ax.set_ylabel('Genotypes')
+    # ax.yaxis.grid(True)
+    ax.xaxis.grid(True)
+    plt.show()
+    fig.savefig('results\\radial_distance_{}seconds_means.png'.format(cutoff),format='png', dpi=600, bbox_inches = 'tight')
+    
+    fig, ax= plt.subplots()
+    sns.set_style("white")
+    ax = sns.boxplot(data=inst_vel_mean_all_df, palette="Set3", showfliers = False, showmeans=False, linewidth=1, fliersize=3, orient="h")
+    ax = sns.stripplot(data=inst_vel_mean_all_df, color=".25",size=2, orient="h")
+    ax.set_xlabel('Instantaneous Velocity')
+    ax.set_yticklabels(inst_vel_mean_all_df.columns, fontsize=5)
+    ax.tick_params(axis='x', labelrotation = 0, size=2)
+    ax.set_title('Average Instantaneous Velocity {} seconds after first contact with Food'.format(cutoff), fontsize=13)
+    ax.set_ylabel('Genotypes')
+    # ax.yaxis.grid(True)
+    ax.xaxis.grid(True)
+    plt.show()
+    fig.savefig('results\\inst_vel_{}seconds_means.png'.format(cutoff),format='png', dpi=600, bbox_inches = 'tight')
+    
 
 
 
