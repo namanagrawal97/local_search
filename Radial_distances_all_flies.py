@@ -1,3 +1,21 @@
+"""
+Readme:
+    
+This code takes 2 inputs :
+    1. "food_timing_multi_lines.csv", which is the csv file containing time labels at which each fly of each genotype first ate food.
+    2. XY coordinates of the fly. The code first enters the folder of the genotype ("foodlist" contains the list of all genotypes in the data folder), and then enter the "24" folder.
+        Inside the "24" folder, there are 2 csv files, containing data for 8 flies. The code parses through each one by one.
+
+Within the "for u in fnames:" loop, the code then takes the XY coordinates of each fly, and deletes the data prior to when the fly first ate food
+It then calculates some parameters, stores them in lists. It then deletes the data in those lists after a specified "time_thres".
+
+It saves the parameters in CSV files.
+
+The code generates plots of radial distance from 0 to "time_thres" for individual fly in each genotype. 
+"""
+
+
+
 
 import matplotlib.pyplot as plt
 import seaborn as sns
@@ -5,13 +23,10 @@ import numpy as np
 import pandas as pd
 import glob
 import os
-import math
 import scipy.stats as stats
-import dabest
-from statsmodels.graphics.gofplots import qqplot
-from scipy.stats import mannwhitneyu
+import matplotlib.ticker as ticker
 
-os.chdir('C:\\Users\\Yapicilab\\Dropbox\\screening')
+os.chdir('C:\\Users\\Yapicilab\\Dropbox\\screening') #SET THIS TO YOUR FOLDER WHERE YOU HAVE KEPT THE DATA FILES
 real_food_all=pd.read_csv('food_timing_multi_lines.csv')
 
 
@@ -21,17 +36,16 @@ real_food_all=pd.read_csv('food_timing_multi_lines.csv')
 foodlist=os.listdir()
 foodlist.remove('food_timing_multi_lines.csv')
 foodlist.remove('results')
-foodlist.remove('ss46202')
-# foodlist.remove('ss45950')
-# foodlist.remove('w1118')
-# foodlist=foodlist[0:39]
+foodlist.remove('ss46202') #Removes this genotype because there is some problem with this data
 genotypelist=foodlist
-genotypelist=["ss31362"]
+
+
+genotypelist=["ss49422"] #USE THIS LINE OF CODE TO SET YOUR GENOTYPE.
 starvation="24"
 # time_list=[5,10,30,60]
 
 time_thres=10
-real_food_all=pd.read_csv('food_timing_multi_lines.csv')
+real_food_all=pd.read_csv('food_timing_multi_lines.csv') #Reading the Manual Labelling of food eating 
 
 def find_index(l,t):
     for j in l:
@@ -40,12 +54,8 @@ def find_index(l,t):
             break
         else:
             continue
-
-# for time_thres in time_list:
     
-rad_dist_dict={}
-number_of_flies={}
-
+rad_dist_dict={} #Creating empty dictionary to store data
 
 for genotype in genotypelist:
     
@@ -58,8 +68,6 @@ for genotype in genotypelist:
     
     for u in fnames: #goes thru files in the folder.
         
-        # print(index)
-        # print(u)
         """
         Loading the data into a dataframe
         """
@@ -103,27 +111,33 @@ for genotype in genotypelist:
                 for j in range(0,len(x_coord)-1,1):
                     rad_dist[j]=np.sqrt((x_coord[j]-540)**2+(y_coord[j]-540)**2)
                     
+                
                 del rad_dist[time_thres*24:-1]
                 rad_dist.pop()
                 radial_distances[index]=rad_dist
 
     rad_dist_df = pd.DataFrame(dict([ (k,pd.Series(v)) for k,v in radial_distances.items() ]))
     
+    rad_dist_df[rad_dist_df>540]=np.nan #Remove problem in tracking
     fig, axs = plt.subplots(nrows=3, ncols=3, figsize=(12, 12))
     plt.subplots_adjust(hspace=0.5)
     fig.suptitle(" {} Radial Distance ({}s after food) distribution".format(genotype, time_thres), fontsize=18, y=0.95)
 
     # loop through tickers and axes
-    for ticker, ax in zip(list(rad_dist_df.columns), axs.ravel()):
-        ax.plot(np.arange(0,time_thres*24,1), rad_dist_df[ticker])
+    for genotype, ax in zip(list(rad_dist_df.columns), axs.ravel()):
+        ax.plot(np.arange(0,time_thres*24,1), rad_dist_df[genotype])
         ax.plot(np.arange(0,time_thres*24,1), [60]*time_thres*24) 
-        # ax.tick_params(axis='y', labelrotation = 0, size=2)
-        ax.set_title("{}".format(ticker),fontsize=9)
+        ax.set_title("{}".format(genotype),fontsize=9)
         ax.set_ylim(0,540)
+        ax.set_xlim(0,time_thres*24)
         ax.set_xlabel("")
-        # ax.set_xticks(np.arange(0,time_thres,1))
-        # ax.set(ylabel=None)
-        # ax.text(450, 1000, "n={}".format(number_of_flies[ticker]))
+
+        ticks = ax.get_xticks()/25
+        ax.set_xticklabels(ticks)
+        
+    handles, labels = ax.get_legend_handles_labels()
+    fig.legend(handles, ["Fly", "Rad_Dist=60"], loc='right')
     # fig.savefig('results\\rad_dist_all_flies\\{}_rad_dist10Seconds.png'.format(genotype),format='png', dpi=600, bbox_inches = 'tight')
     plt.show()
-
+    
+    
