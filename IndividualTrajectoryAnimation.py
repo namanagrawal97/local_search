@@ -23,7 +23,7 @@ import pandas as pd
 import glob
 import os
 import math
-os.chdir('G:\\My Drive\\local_search\\')
+os.chdir('C:\\Users\\Yapicilab\\Documents\\')
 #Set Parameters here. 
 
 ######################################################################################
@@ -31,124 +31,85 @@ os.chdir('G:\\My Drive\\local_search\\')
 food="100mM"
 starvation="24"
 t=10
-trajtime=40    
-fnames = sorted(glob.glob('local_search_well/'+food+'/'+starvation+'/'+'*.csv'))
+time_thres=40    
+fnames = ["C:\\Users\\Yapicilab\\Documents\\w1118xUASTNT_25_5yeast_10_312022-10-31T16_15_01.csv"]
 print(fnames)
-areas=[30,40,50,60,70]
 
-for f in range(1,7,1):
-    try:
-        pick_traj = f      # Select a trajectory to simulate
-        
-        ######################################################################################
-        
+
+    ######################################################################################
+    
+for u in fnames:#goes thru files in the folder.
+    # print(u)
+    df=pd.read_csv(u, header=None)
+    print("before",df.shape[1])
+    df=df.dropna(axis=1,thresh=20000)
+    print("after",df.shape[1])
+    if(df.shape[1]==10):
+        data_header = ['Time', 'Latency', 'Fx1', 'Fy1', 'Fx2', 'Fy2', 'Fx3', 'Fy3','Fx4','Fy4']
+    elif(df.shape[1]==8):
         data_header = ['Time', 'Latency', 'Fx1', 'Fy1', 'Fx2', 'Fy2', 'Fx3', 'Fy3']
-        data_header2 = ['Fx1', 'Fy1', 'Fx2', 'Fy2', 'Fx3', 'Fy3']
-        FRAvisits=pd.DataFrame()#Loads the dataframe
-        afterfirstvisit=pd.DataFrame(columns = ['Fx', 'Fy','Flynum','Time'])#generate empty dataframe
-        beforefirstvisit=pd.DataFrame(columns = ['Fx', 'Fy','Flynum','Time'])#generate empty dataframe
-        k=0
+    elif(df.shape[1]==6):
+         data_header = ['Time', 'Latency', 'Fx1', 'Fy1', 'Fx2', 'Fy2']
+    elif(df.shape[1]==4):
+         data_header = ['Time', 'Latency', 'Fx1', 'Fy1']
+    df.columns=data_header
+    df['Latency'][0] = 0#sets the first value of latency as zero because it is generally very high
+    df['Time']=df['Time']-round(df['Time'][0])
+    for i in range(2,len(data_header),2):
+        x_coord=list(df[data_header[i]])
+        y_coord=list(df[data_header[i+1]])
+        # del x_coord[0:split_point_index]
+        # del y_coord[0:split_point_index]
         
-        for u in fnames:#goes thru files in the folder.
-            # print(u)
-            df=pd.read_csv(u, header=None)
-            df.columns=data_header#sets the column header
-            df['Latency'][0] = 0#sets the first value of latency as zero because it is generally very high
-            df['Time']=df['Time']-60
-            for i in range(0,len(data_header2),2):
-                empty=pd.DataFrame()
-                # empty=df[(df[data_header2[i]]>554) & (df[data_header2[i]] < 654) & (df[data_header2[i+1]] < 590) & (df[data_header2[i+1]] > 490)]
-                empty=df[(df[data_header2[i]]-540)**2 + (df[data_header2[i+1]]-540)**2 <= 60**2]
-                timestamp=empty['Time']
-                timestamp=timestamp.astype(int)
-                timestamp=timestamp.drop_duplicates()
-                timestamp=timestamp.tolist()
-                jumps=[]
-                # print(len(timestamp), "what")
+        rad_dist=list(np.zeros_like(x_coord))
         
-                #In this for loop, we apply the condition that the fly is in food zone for more than t seconds, we count it as one feeding bout.
-                for m in range(0,len(timestamp)-1,1):
-                    if(timestamp[m+1]-timestamp[m]>t):
-                        jumps.append(timestamp[m+1])
-                    else:
-                        pass
-                k=k+1
-                try:
-                    if(timestamp[2]-timestamp[0]<t):
-                        jumps.insert(0,timestamp[0])
-                    else:
-                        pass
-                except:
-                    pass
-                try:
-                    jumps=pd.Series(jumps)
-                    FRAvisits=pd.concat((FRAvisits,jumps.rename(k)), axis=1)
-                    indexing=np.where(df['Time']>jumps[0])#Finds the first feeding bout
-                    index=indexing[0][0]
-                    aftertrunc=df.truncate(before=index)
-                    beforetrunc=df.truncate(after=index)
-                    firstvisit=pd.DataFrame()# generates a dataframe of fly positions AFTER the first jump
-                    firstvisit['Fx']=aftertrunc[data_header2[i]]
-                    firstvisit['Fy']=aftertrunc[data_header2[i+1]]
-                    firstvisit['Flynum']=k
-                    firstvisit['Time']=aftertrunc['Time']
-                    
-                    bffirstvisit=pd.DataFrame()# generates a dataframe of fly positions BEFORE the first jump
-                    bffirstvisit['Fx']=beforetrunc[data_header2[i]]
-                    bffirstvisit['Fy']=beforetrunc[data_header2[i+1]]
-                    bffirstvisit['Flynum']=k
-                    bffirstvisit['Time']=beforetrunc['Time']
-                    
-                    
-                    afterfirstvisit=pd.concat([afterfirstvisit, firstvisit])
-                    beforefirstvisit=pd.concat([beforefirstvisit, bffirstvisit])
-                except:
-                    pass
-        
-        afterfirstvisit=afterfirstvisit[np.isfinite(afterfirstvisit['Fx'])]
-        afterfirstvisit=afterfirstvisit[np.isfinite(afterfirstvisit['Fy'])]
-        
-        beforefirstvisit=beforefirstvisit[np.isfinite(beforefirstvisit['Fx'])]
-        beforefirstvisit=beforefirstvisit[np.isfinite(beforefirstvisit['Fy'])]
-        
-        
-        
-        fig, ax = plt.subplots(figsize=(15,15))
-        ax.set_xlim(0,1080)
-        ax.set_ylim(0,1080)
-        ax.add_patch(plt.Circle((540,540), 60))
-        ax.add_patch(plt.Circle((540,540), 30,color='r'))
-        
-        # Initiate camera
-        
-        # camera = Camera(fig)
-        
-        flyindtraj=afterfirstvisit[afterfirstvisit["Flynum"]==pick_traj]
-        flyindtraj=flyindtraj.reset_index(drop=True)
-        flyindtraj=flyindtraj.truncate(after=2000)
-        x = list(flyindtraj['Fx'])
-        xlist=[]
-        
-        y = list(flyindtraj['Fy'])
-        ylist=[]
-        
-        particle, = plt.plot([],[], marker='o', color='r', markersize=3)
-        traj, = plt.plot([],[], color='b', alpha=0.5)
-        
-        metadata=dict(title='AAAA', artist='Naman')
-        
-        def flytraj(j):
-            traj.set_xdata(x[:j+1])
-            traj.set_ydata(y[:j+1])
-            particle.set_xdata(x[j])
-            particle.set_xdata(y[j])
-            return traj,particle
-        animation2 =FuncAnimation(fig, flytraj, frames=np.arange(1,flyindtraj.shape[0]+1,1),interval=1, blit=True)
-        plt.show()
-        
-        Writer = writers['ffmpeg']
-        writer = Writer(fps=15, metadata={'artist': 'Me'}, bitrate=1800)
-        
-        animation2.save('Line Graph Animation_{}_{}_{}.mp4'.format(food, starvation,pick_traj), writer)
-    except:
-        pass
+        for j in range(0,len(x_coord)-1,1):
+            rad_dist[j]=np.sqrt((x_coord[j]-540)**2+(y_coord[j]-540)**2)
+            
+        if len(rad_dist)<time_thres*24:
+            pass
+        else:
+            del rad_dist[time_thres*24:-1]
+            del rad_dist[0:(time_thres-1)*24-1]
+            rad_dist.pop()
+            # radial_distances.append(np.mean(rad_dist))
+
+
+fig, ax = plt.subplots(figsize=(15,15))
+ax.set_xlim(0,1444)
+ax.set_ylim(0,1080)
+# ax.add_patch(plt.Circle((540,540), 60))
+# ax.add_patch(plt.Circle((540,540), 30,color='r'))
+
+# Initiate camera
+
+# camera = Camera(fig)
+
+# flyindtraj=afterfirstvisit[afterfirstvisit["Flynum"]==pick_traj]
+# flyindtraj=flyindtraj.reset_index(drop=True)
+# flyindtraj=flyindtraj.truncate(after=2000)
+
+x = x_coord
+xlist=[]
+
+y = y_coord
+ylist=[]
+
+particle, = plt.plot([],[], marker='o', color='r', markersize=3)
+traj, = plt.plot([],[], color='b', alpha=0.8)
+
+metadata=dict(title='AAAA', artist='Naman')
+
+def flytraj(j):
+    traj.set_xdata(x[:j+1])
+    traj.set_ydata(y[:j+1])
+    particle.set_xdata(x[j])
+    particle.set_ydata(y[j])
+    return traj,particle
+animation2 =FuncAnimation(fig, flytraj, frames=np.arange(1,len(x_coord)+1,1),interval=1, blit=True)
+plt.show()
+
+Writer = writers['ffmpeg']
+writer = Writer(fps=15, metadata={'artist': 'Me'}, bitrate=1800)
+
+animation2.save('Line Graph Animation_{}_{}.mp4'.format(food, starvation), writer)
