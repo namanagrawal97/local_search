@@ -23,7 +23,7 @@ import pandas as pd
 import glob
 import os
 import math
-os.chdir('C:\\Users\\Yapicilab\\Documents\\')
+os.chdir('C:\\Users\\Yapicilab\\Dropbox\\Claire\\8maze\\initial experiments')
 #Set Parameters here. 
 
 ######################################################################################
