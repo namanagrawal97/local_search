@@ -26,30 +26,28 @@ import numpy as np
 import pandas as pd
 import glob
 import os
-from statsmodels.graphics.gofplots import qqplot
+import scipy.stats as stats
+import matplotlib.ticker as ticker
 
-os.chdir('C:\\Users\\Yapicilab\\Dropbox\\screening')
-real_food_all=pd.read_csv('food_timing_multi_lines.csv') #Reading the Manual Labelling of food eating 
+os.chdir('C:\\Users\\Yapicilab\\Dropbox\\screening') #SET THIS TO YOUR FOLDER WHERE YOU HAVE KEPT THE DATA FILES
+real_food_all=pd.read_csv('food_timing_screening.csv')
 
 
-# starvationlist=["0","8","16","24"]
+# starvationlist=["16","24"]
 
 
 foodlist=os.listdir()
-foodlist.remove('food_timing_multi_lines.csv') #Removes the Manual Labelling csv file from reading
-foodlist.remove('results') #Removes the results folder from reading
-foodlist.remove('ss46202') #Removes this genotype because there is some problem with this data
-# foodlist.remove('ss45950')
-# foodlist.remove('w1118')
-# foodlist=foodlist[0:39]
+# foodlist.remove('food_timing_screening245.xlsx')
+foodlist.remove('food_timing_screening.csv')
+
+foodlist.remove('results')
+foodlist.remove('bad_data') #Removes this genotype because there is some problem with this data
 genotypelist=foodlist
-genotypelist=["ss49422","w1118"] #USE THIS LINE TO SET YOUR GENOTYPE
+#USE THIS LINE OF CODE TO SET YOUR GENOTYPE.
 starvation="24"
-time_list=[5,10,30,60]
-# time_list=[10]
+time_list=[60]
 
-real_food_all=pd.read_csv('food_timing_multi_lines.csv')  #Reading the Manual Labelling of food eating 
-
+# time_thres=60
 
 def find_index(l,t): #This function helps us find indexes
     for j in l:
@@ -77,19 +75,22 @@ for time_thres in time_list:
     inst_vel_mean_all_dict={}
    
     number_of_flies={}
-    
+    tort_coeff_dict={}
     
     for genotype in genotypelist:
-        print(genotype)
+                    
+        print(genotype,starvation)
         fnames = sorted(glob.glob(genotype+'/'+starvation+'/'+'*.csv')) #Enter the genotype folder and "24" folder
         index=0 #Counter for counting the number of iterations
         
         real_food_df=real_food_all[real_food_all['genotype']==genotype] #Extracts data for this genotype from Manual labels of first food eating labels
+        # real_food_df=real_food_df[real_food_df['starvation']==int(starvation)]
         real_food_bout_list=list(real_food_df['final_first_bout'])
         
         inst_vel_all=[]
         rad_dist_all=[] #Lists to store all the raw data
         tot_dist_all=[]
+        tort_coeff_all=[]
         
         inst_vel_median_all=[]
         rad_dist_median_all=[] #Lists to store the medians of data
@@ -106,9 +107,9 @@ for time_thres in time_list:
             """
             
             df=pd.read_csv(u, header=None)
-            print("before",df.shape[1])
-            df=df.dropna(axis=1,thresh=20000)
-            print("after",df.shape[1])
+            # print("before",df.shape[1])
+            # df=df.dropna(axis=1,thresh=20000)
+            # print("after",df.shape[1])
             if(df.shape[1]==10):
                 data_header = ['Time', 'Latency', 'Fx1', 'Fy1', 'Fx2', 'Fy2', 'Fx3', 'Fy3','Fx4','Fy4']
             elif(df.shape[1]==8):
@@ -122,7 +123,7 @@ for time_thres in time_list:
             latency=list(df['Latency']) #Just making a list for Latency, which is the second column in our data csv files. We dont use this anywhere.
             latency[0]=0 #Usually the latency of the first observation is really high, so we manually set it to zero.
             
-            df['Time']=df['Time']-120 #Since our experiment begins after 2 minutes, we subtract this time from the data
+            df['Time']=df['Time']-round(df['Time'][0]) #Since our experiment begins after 2 minutes, we subtract this time from the data
             
             for i in range(2,len(data_header),2):
                 index=index+1
@@ -156,12 +157,18 @@ for time_thres in time_list:
                     else:
                         wall_touching_point=wall_touching_point
                     print(wall_touching_point)
+                    tort_distance=distance_travelled
+                    displacement=np.sqrt((x_coord[-1]-x_coord[0])**2+(y_coord[-1]-y_coord[0])**2)
+                    
                     del distance_travelled[wall_touching_point:-1] #Delete data from the Total_Distance list after fly has touched wall
+                    del tort_distance[time_thres*24:-1]
                     del rad_dist[time_thres*24:-1] #Delete everything after declared time
                     del inst_vel[time_thres*24:-1]
                     rad_dist.pop() #Remove the last element which is somehow always 0
                     inst_vel.pop() #Remove the last element which is somehow always 0
                     total_distance_travelled=sum(distance_travelled) 
+                    
+                    tort=np.sum(tort_distance)/displacement
                     
                     rad_dist_median_all.append(np.median(rad_dist)) #Calculate the median radial distance and append to a list
                     inst_vel_median_all.append(np.median(inst_vel)) #Calculate the median Instantenous Velocity and append to a list
@@ -172,17 +179,19 @@ for time_thres in time_list:
                     rad_dist_all.extend(rad_dist) #Append the Radial Distance list to one huge raw data list
                     inst_vel_all.extend(inst_vel) #Append the Instantaneous Velocity list to one huge raw data list
                     tot_dist_all.append(total_distance_travelled) #Append the Total Distance Travelled list to one huge raw data list
+                    tort_coeff_all.append(tort)
                     
                     inst_vel_all = [x for x in inst_vel_all if np.isnan(x) == False]
                     rad_dist_all = [x for x in rad_dist_all if np.isnan(x) == False] #Clean NaNs from the huge list
                     tot_dist_all = [x for x in tot_dist_all if np.isnan(x) == False]                
-            
+        
         number_of_flies[genotype]=index
-    
+
         inst_vel_dict[genotype]=inst_vel_all #Append the huge raw data list to Dictionary with the Corresponding Genotype  
         rad_dist_dict[genotype]=rad_dist_all
         tot_dist_dict[genotype]=tot_dist_all
-    
+        tort_coeff_dict[genotype]=tort_coeff_all
+        
         inst_vel_med_dict[genotype]=np.median(inst_vel_all) #Just taking the median of the huge raw data list and appending it to another dictionary
         rad_dist_med_dict[genotype]=np.median(rad_dist_all) 
         tot_dist_med_dict[genotype]=np.median(tot_dist_all)    
@@ -192,7 +201,7 @@ for time_thres in time_list:
         
         rad_dist_mean_all_dict[genotype]=rad_dist_mean_all #Append the Mean Radial Distance LIST to Dictionary with the Corresponding Genotype
         inst_vel_mean_all_dict[genotype]=inst_vel_mean_all #Append the Mean Instantaneous Velocity LIST to Dictionary with the Corresponding Genotype
-    
+            
     "All radial distance and inst velocity raw data"
     
     rad_dist_med_dict = dict(sorted(rad_dist_med_dict.items(), key=lambda x: x[1], reverse=True)) #Sorting the dictionary according to medians
@@ -219,6 +228,7 @@ for time_thres in time_list:
     inst_vel_df = pd.DataFrame(dict([ (k,pd.Series(v)) for k,v in inst_vel_dict_final.items() ]))   #Converting the dictionary of sorted rawdata to a Dataframe
     tot_dist_df = pd.DataFrame(dict([ (k,pd.Series(v)) for k,v in tot_dist_dict_final.items() ]))
     
+    
     """
     Median of Radial Distance and Instantaneous Velocity Dataframe
     
@@ -241,12 +251,16 @@ for time_thres in time_list:
     """
     rad_dist_mean_all_df = pd.DataFrame(dict([ (k,pd.Series(v)) for k,v in rad_dist_mean_all_dict.items() ])) #convert dictionary to dataframe
     inst_vel_mean_all_df = pd.DataFrame(dict([ (k,pd.Series(v)) for k,v in inst_vel_mean_all_dict.items() ]))
+    tort_coeff_all_df= pd.DataFrame(dict([ (k,pd.Series(v)) for k,v in tort_coeff_dict.items() ]))
     
     sorted_index_rad = rad_dist_mean_all_df.median().sort_values().index #Use the median values to sort the index
     sorted_index_inst = inst_vel_mean_all_df.median().sort_values().index
+    sorted_index_tort=tort_coeff_all_df.median().sort_values().index
     
     rad_dist_mean_all_df=rad_dist_mean_all_df[sorted_index_rad] #Using the sorted Index to sort the Dataframes
     inst_vel_mean_all_df=inst_vel_mean_all_df[sorted_index_inst]
+    tort_coeff_all_df=tort_coeff_all_df[sorted_index_tort]
+    
     
     # rad_dist_mean_all_df.to_csv("results\\rad_dist_mean_all{}_df.csv".format(time_thres),index=False) #writing the df to a csv file
     # inst_vel_mean_all_df.to_csv("results\\inst_vel_mean_all{}_df.csv".format(time_thres),index=False)
@@ -349,7 +363,7 @@ for time_thres in time_list:
     ax.set_xlabel('Radial Distance')
     ax.set_yticklabels(rad_dist_mean_all_df.columns, fontsize=5)
     ax.tick_params(axis='x', labelrotation = 0, labelsize=5)
-    ax.set_title('Average Radial Distance {} seconds after first contact with Food'.format(time_thres), fontsize=13)
+    ax.set_title('Average Radial Distance {} seconds after first contact with Food'.format(time_thres), fontsize=11)
     ax.set_ylabel('Genotypes')
     # ax.yaxis.grid(True)
     ax.xaxis.grid(True)
@@ -363,12 +377,26 @@ for time_thres in time_list:
     ax.set_xlabel('Instantaneous Velocity')
     ax.set_yticklabels(inst_vel_mean_all_df.columns, fontsize=5)
     ax.tick_params(axis='x', labelrotation = 0, size=2)
-    ax.set_title('Average Instantaneous Velocity {} seconds after first contact with Food'.format(time_thres), fontsize=13)
+    ax.set_title('Average Instantaneous Velocity {} seconds after first contact with Food'.format(time_thres), fontsize=11)
     ax.set_ylabel('Genotypes')
     # ax.yaxis.grid(True)
     ax.xaxis.grid(True)
     plt.show()
     # fig.savefig('results\\inst_vel_{}seconds_means.png'.format(time_thres),format='png', dpi=600, bbox_inches = 'tight')
+    
+    fig, ax= plt.subplots()
+    sns.set_style("white")
+    ax = sns.boxplot(data=tort_coeff_all_df, palette="Set3", showfliers = False, showmeans=False, linewidth=1, fliersize=3, orient="h")
+    ax = sns.stripplot(data=tort_coeff_all_df, color=".25",size=2, orient="h")
+    ax.set_xlabel('Tortional Coefficient')
+    ax.set_yticklabels(tort_coeff_all_df.columns, fontsize=5)
+    ax.tick_params(axis='x', labelrotation = 0, size=2)
+    ax.set_title('Tortional Coefficient {} seconds after first contact with Food'.format(time_thres), fontsize=13)
+    ax.set_ylabel('Genotypes')
+    # ax.yaxis.grid(True)
+    ax.xaxis.grid(True)
+    plt.show()
+    # fig.savefig('results\\tort_coeff_{}seconds.png'.format(time_thres),format='png', dpi=600, bbox_inches = 'tight')
     
 
 
