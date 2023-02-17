@@ -28,21 +28,25 @@ import glob
 import os
 import scipy.stats as stats
 import matplotlib.ticker as ticker
+from mpl_toolkits import mplot3d
 
-os.chdir('C:\\Users\\Yapicilab\\Dropbox\\screening') #SET THIS TO YOUR FOLDER WHERE YOU HAVE KEPT THE DATA FILES
-real_food_all=pd.read_csv('food_timing_screening.csv')
+
+os.chdir('C:\\Users\\Yapicilab\\Dropbox\\screening-2') #SET THIS TO YOUR FOLDER WHERE YOU HAVE KEPT THE DATA FILES
+real_food_all=pd.read_csv('food_timing_screening245.csv')
 
 
 # starvationlist=["16","24"]
 
 
 foodlist=os.listdir()
-# foodlist.remove('food_timing_screening245.xlsx')
-foodlist.remove('food_timing_screening.csv')
+foodlist.remove('food_timing_screening245.xlsx')
+foodlist.remove('food_timing_screening245.csv')
 
 foodlist.remove('results')
-foodlist.remove('bad_data') #Removes this genotype because there is some problem with this data
+# foodlist.remove('bad_data') #Removes this genotype because there is some problem with this data
+
 genotypelist=foodlist
+# genotypelist=["ss32119"]
 #USE THIS LINE OF CODE TO SET YOUR GENOTYPE.
 starvation="24"
 time_list=[60]
@@ -80,7 +84,7 @@ for time_thres in time_list:
     for genotype in genotypelist:
                     
         print(genotype,starvation)
-        fnames = sorted(glob.glob(genotype+'/'+starvation+'/'+'*.csv')) #Enter the genotype folder and "24" folder
+        fnames = sorted(glob.glob(genotype+'/'+'*.csv')) #Enter the genotype folder and "24" folder
         index=0 #Counter for counting the number of iterations
         
         real_food_df=real_food_all[real_food_all['genotype']==genotype] #Extracts data for this genotype from Manual labels of first food eating labels
@@ -166,7 +170,7 @@ for time_thres in time_list:
                     del inst_vel[time_thres*24:-1]
                     rad_dist.pop() #Remove the last element which is somehow always 0
                     inst_vel.pop() #Remove the last element which is somehow always 0
-                    total_distance_travelled=sum(distance_travelled) 
+                    total_distance_travelled=np.nansum(distance_travelled) 
                     
                     tort=np.sum(tort_distance)/displacement
                     
@@ -263,7 +267,7 @@ for time_thres in time_list:
     
     
     # rad_dist_mean_all_df.to_csv("results\\rad_dist_mean_all{}_df.csv".format(time_thres),index=False) #writing the df to a csv file
-    # inst_vel_mean_all_df.to_csv("results\\inst_vel_mean_all{}_df.csv".format(time_thres),index=False)
+    inst_vel_mean_all_df.to_csv("results\\inst_vel_mean_all{}_df.csv".format(time_thres),index=False)
 
     # """
     # PLOTTING
@@ -398,6 +402,24 @@ for time_thres in time_list:
     plt.show()
     # fig.savefig('results\\tort_coeff_{}seconds.png'.format(time_thres),format='png', dpi=600, bbox_inches = 'tight')
     
+
+"""
+Trying to do 3D plotting with Radial Distance, Instantaneous Velocity and Total Distance Travelled
+"""
+
+# fig = plt.figure()
+# ax = plt.axes(projection='3d')
+# ax.scatter3D(rad_dist_mean_all_df['ss31362'].dropna(), inst_vel_mean_all_df['ss31362'].dropna(), tot_dist_df['ss31362'].dropna())
+# ax.scatter3D(rad_dist_mean_all_df['ss45929'].dropna(), inst_vel_mean_all_df['ss45929'].dropna(), tot_dist_df['ss45929'].dropna())
+# ax.scatter3D(rad_dist_mean_all_df['ss39993'].dropna(), inst_vel_mean_all_df['ss39993'].dropna(), tot_dist_df['ss39993'].dropna())
+# ax.scatter3D(rad_dist_mean_all_df['ss45693'].dropna(), inst_vel_mean_all_df['ss45693'].dropna(), tot_dist_df['ss45693'].dropna())
+# ax.scatter3D(rad_dist_mean_all_df['ss45926'].dropna(), inst_vel_mean_all_df['ss45926'].dropna(), tot_dist_df['ss45926'].dropna())
+
+# # ax.scatter3D(rad_dist_mean_all_df['w1118'].dropna(), inst_vel_mean_all_df['w1118'].dropna(), tot_dist_df['w1118'].dropna())
+
+# ax.set_xlabel('Rad')
+# ax.set_ylabel('Vel')
+# ax.set_zlabel('Tot')
 
 
 
