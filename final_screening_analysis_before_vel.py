@@ -73,7 +73,29 @@ def find_index(l,t): #This function helps us find indexes
         else:
             continue
 
+def dict_to_df(input_dict):
+    df=pd.DataFrame(dict([ (k,pd.Series(v)) for k,v in input_dict.items() ]))    
+    sorted_index_df = df.mean().sort_values().index
+    df=df[sorted_index_df]
+    return(df)
 
+def df_to_csv(input_df):
+    input_df.to_csv("results\\{}.csv".format(input_df),index=False)
+    
+def custom_plot(input_df):
+    fig, ax= plt.subplots()
+    sns.set_style("white")
+    ax = sns.boxplot(data=input_df, palette="Set3", showfliers = False, showmeans=False, linewidth=1, fliersize=3, orient="h")
+    ax = sns.stripplot(data=input_df, color=".25",size=2, orient="h")
+    ax.set_xlabel('Instantaneous Velocity')
+    ax.set_yticklabels(input_df.columns, fontsize=5)
+    ax.tick_params(axis='x', labelrotation = 0, size=2)
+    ax.set_title(str(input_df), fontsize=11)
+    ax.set_ylabel('Genotypes')
+    # ax.yaxis.grid(True)
+    ax.axvline(input_df["w1118"].mean())
+    ax.xaxis.grid(True)
+    plt.show()
 
 for time_thres in time_list: 
     
@@ -81,11 +103,12 @@ for time_thres in time_list:
     inst_vel_after_mean_all_dict={}
     inst_vel_before_mean_all_dict={}
     inst_vel_diff_dict={}
+    inst_vel_ratio_dict={}
     
     inst_vel_after_binned_mean_all_dict={}
     inst_vel_before_binned_mean_all_dict={}
     inst_vel_diff_binned_dict={}
-   
+    inst_vel_ratio_binned_dict={}
     number_of_flies={}    
     for genotype in genotypelist:
                     
@@ -101,12 +124,13 @@ for time_thres in time_list:
         
         inst_vel_after_mean_all=[]
         inst_vel_before_mean_all=[]
-        inst_vel_diff_all=[]        
+        inst_vel_diff_all=[]
+        inst_vel_ratio_all=[]        
 
         inst_vel_after_binned_mean_all=[]
         inst_vel_before_binned_mean_all=[]
         inst_vel_diff_binned_all=[]        
-        
+        inst_vel_ratio_binned_all=[]
 
         for u in fnames: #goes through files in the folder.
             
@@ -172,11 +196,12 @@ for time_thres in time_list:
                     inst_vel_after_mean_all.append(np.nanmean(inst_vel_after))  #Calculate the mean Instantenous Velocity and append to a list                 
                     inst_vel_before_mean_all.append(np.nanmean(inst_vel_before))
                     inst_vel_diff_all.append(np.nanmean(inst_vel_after)-np.nanmean(inst_vel_before))
+                    inst_vel_ratio_all.append(np.nanmean(inst_vel_after)/np.nanmean(inst_vel_before))
                     
                     inst_vel_after_binned_mean_all.append(np.nanmean(inst_vel_after_binned))  #Calculate the mean Instantenous Velocity and append to a list                 
                     inst_vel_before_binned_mean_all.append(np.nanmean(inst_vel_before_binned))
                     inst_vel_diff_binned_all.append(np.nanmean(inst_vel_after_binned)-np.nanmean(inst_vel_before_binned))
-                    
+                    inst_vel_ratio_binned_all.append(np.nanmean(inst_vel_after_binned)/np.nanmean(inst_vel_before_binned))
                     
         
         number_of_flies[genotype]=index
@@ -185,27 +210,34 @@ for time_thres in time_list:
         inst_vel_after_mean_all_dict[genotype]=inst_vel_after_mean_all #Append the Mean Instantaneous Velocity LIST to Dictionary with the Corresponding Genotype
         inst_vel_before_mean_all_dict[genotype]=inst_vel_before_mean_all
         inst_vel_diff_dict[genotype]=inst_vel_diff_all
+        inst_vel_ratio_dict[genotype]=inst_vel_ratio_all
         
         inst_vel_after_binned_mean_all_dict[genotype]=inst_vel_after_binned_mean_all #Append the Mean Instantaneous Velocity LIST to Dictionary with the Corresponding Genotype
         inst_vel_before_binned_mean_all_dict[genotype]=inst_vel_before_binned_mean_all
         inst_vel_diff_binned_dict[genotype]=inst_vel_diff_binned_all
+        inst_vel_ratio_binned_dict[genotype]=inst_vel_ratio_binned_all
         
     """
-    Mean of Radial Distance and Instantaneous Velocity Dataframe
+    Converting Dictionaries to Dataframe using functions
     
     """
-    inst_vel_after_mean_all_df = pd.DataFrame(dict([ (k,pd.Series(v)) for k,v in inst_vel_after_mean_all_dict.items() ]))
-    inst_vel_before_mean_all_df = pd.DataFrame(dict([ (k,pd.Series(v)) for k,v in inst_vel_before_mean_all_dict.items() ]))
-    inst_vel_diff_all_df=pd.DataFrame(dict([ (k,pd.Series(v)) for k,v in inst_vel_diff_dict.items() ]))
-    inst_vel_diff_all_binned_df=pd.DataFrame(dict([ (k,pd.Series(v)) for k,v in inst_vel_diff_binned_dict.items() ]))
-    sorted_index_inst_vel_diff = inst_vel_diff_all_df.mean().sort_values().index
+    inst_vel_after_mean_all_df = dict_to_df(inst_vel_after_mean_all_dict)
+    inst_vel_after_binned_mean_all_df= dict_to_df(inst_vel_after_binned_mean_all_dict)
+    inst_vel_before_mean_all_df = dict_to_df(inst_vel_before_mean_all_dict)
+    inst_vel_before_binned_mean_all_df = dict_to_df(inst_vel_before_binned_mean_all_dict)
+    inst_vel_diff_all_df=dict_to_df(inst_vel_diff_dict)
+    inst_vel_diff_all_binned_df=dict_to_df(inst_vel_diff_binned_dict)
+    inst_vel_ratio_df=dict_to_df(inst_vel_ratio_dict)
+    inst_vel_ratio_binned_df=dict_to_df(inst_vel_ratio_binned_dict)
+        
     
-    inst_vel_diff_all_df=inst_vel_diff_all_df[sorted_index_inst_vel_diff]
+    
+    
     
     
     # rad_dist_mean_all_df.to_csv("results\\rad_dist_mean_all{}_df.csv".format(time_thres),index=False) #writing the df to a csv file
-    inst_vel_diff_all_df.to_csv("results\\inst_vel_diff_all_{}_df.csv".format(time_thres),index=False)
-    inst_vel_diff_all_binned_df.to_csv("results\\inst_vel_diff_all_binned_{}_df.csv".format(time_thres),index=False)
+    # inst_vel_diff_all_df.to_csv("results\\inst_vel_diff_all_{}_df.csv".format(time_thres),index=False)
+    # inst_vel_diff_all_binned_df.to_csv("results\\inst_vel_diff_all_binned_{}_df.csv".format(time_thres),index=False)
     
 
     
@@ -213,22 +245,7 @@ for time_thres in time_list:
     Here we generate comparative boxplots for genotypes, but mean only
     """
     
-    
-
-    
-    fig, ax= plt.subplots()
-    sns.set_style("white")
-    ax = sns.boxplot(data=inst_vel_diff_all_df, palette="Set3", showfliers = False, showmeans=False, linewidth=1, fliersize=3, orient="h")
-    ax = sns.stripplot(data=inst_vel_diff_all_df, color=".25",size=2, orient="h")
-    ax.set_xlabel('Instantaneous Velocity')
-    ax.set_yticklabels(inst_vel_diff_all_df.columns, fontsize=5)
-    ax.tick_params(axis='x', labelrotation = 0, size=2)
-    ax.set_title('Difference in Average Velocity After and Before eating the food', fontsize=11)
-    ax.set_ylabel('Genotypes')
-    # ax.yaxis.grid(True)
-    ax.axvline(inst_vel_diff_all_df["w1118"].mean())
-    ax.xaxis.grid(True)
-    plt.show()
+    custom_plot(inst_vel_ratio_binned_df)
     # fig.savefig('results\\inst_vel_{}seconds_means.png'.format(time_thres),format='png', dpi=600, bbox_inches = 'tight')
     
 # fig, ax= plt.subplots()
