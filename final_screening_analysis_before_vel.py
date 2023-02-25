@@ -112,9 +112,11 @@ def individual_plot(input_df):
         # ax.set_xlim(0,len(input_df[genotype]))
         ax.set_xlabel("")
         ax.axvline(len(newlist)/2, color='red')
-        # ticks = ax.get_xticks()/25
+        ticks = ax.get_xticks()
         # ax.set_xticklabels(ticks)
 
+inst_vel_behav_all_dict={}
+inst_vel_behav_binned_all_dict={}
 
 inst_vel_after_mean_all_dict={}
 inst_vel_before_mean_all_dict={}
@@ -229,12 +231,13 @@ for genotype in genotypelist:
                 inst_vel_ratio_binned_all.append(np.nanmean(inst_vel_after_binned)/np.nanmean(inst_vel_before_binned))
                 
                 inst_vel_behav_dict[index]=inst_vel_behav
-                inst_vel_behav_df=pd.DataFrame(dict([ (k,pd.Series(v)) for k,v in inst_vel_behav_dict.items() ]))    
+                inst_vel_behav_binned_dict[index]=inst_vel_behav_binned
+                inst_vel_behav_df=pd.DataFrame(dict([ (k,pd.Series(v)) for k,v in inst_vel_behav_dict.items() ]))
+                inst_vel_behav_binned_df=pd.DataFrame(dict([ (k,pd.Series(v)) for k,v in inst_vel_behav_binned_dict.items() ]))
 
     
-    individual_plot(inst_vel_behav_df)
-                
-    
+    inst_vel_behav_all_dict[genotype]=inst_vel_behav_df            
+    inst_vel_behav_binned_all_dict[genotype]=inst_vel_behav_binned_df
     number_of_flies[genotype]=index
     
     
@@ -263,8 +266,9 @@ inst_vel_ratio_df=dict_to_df(inst_vel_ratio_dict)
 inst_vel_ratio_binned_df=dict_to_df(inst_vel_ratio_binned_dict)
     
 
-
-
+"""
+Generating individual velocity graphs
+"""
 
 
 # rad_dist_mean_all_df.to_csv("results\\rad_dist_mean_all{}_df.csv".format(time_thres),index=False) #writing the df to a csv file
