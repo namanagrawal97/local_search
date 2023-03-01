@@ -36,7 +36,9 @@ import os
 import scipy.stats as stats
 import matplotlib.ticker as ticker
 
-os.chdir('C:\\Users\\sinha\\Dropbox\\screening') #SET THIS TO YOUR FOLDER WHERE YOU HAVE KEPT THE DATA FILES
+from plot_func import *
+
+os.chdir('C:\\Users\\Yapicilab\\Dropbox\\screening') #SET THIS TO YOUR FOLDER WHERE YOU HAVE KEPT THE DATA FILES
 real_food_all=pd.read_csv('food_timing_screening.csv')
 
 
@@ -50,70 +52,14 @@ foodlist.remove('food_timing_screening.csv')
 foodlist.remove('results')
 foodlist.remove('bad_data') #Removes this genotype because there is some problem with this data
 genotypelist=foodlist
-genotypelist=['ss47080']
+# genotypelist=['ss27600']
 #USE THIS LINE OF CODE TO SET YOUR GENOTYPE.
 starvation="24"
 time_thres=60
 
 # time_thres=60
 
-def binning(list_to_bin,kernel_size):
-    i=0
-    binned_list=[]
-    while i<len(list_to_bin):
-        binned_list.append(np.sum(list_to_bin[i:i+kernel_size])/kernel_size)
-        i=i+kernel_size
-    return binned_list
 
-def find_index(l,t): #This function helps us find indexes
-    for j in l:
-        if j>t:
-            return l.index(j)
-            break
-        else:
-            continue
-
-def dict_to_df(input_dict):
-    df=pd.DataFrame(dict([ (k,pd.Series(v)) for k,v in input_dict.items() ]))    
-    sorted_index_df = df.mean().sort_values().index
-    df=df[sorted_index_df]
-    return(df)
-
-def df_to_csv(input_df):
-    input_df.to_csv("results\\{}.csv".format(input_df),index=False)
-    
-def box_plot(input_df):
-    fig, ax= plt.subplots()
-    sns.set_style("white")
-    ax = sns.boxplot(data=input_df, palette="Set3", showfliers = False, showmeans=False, linewidth=1, fliersize=3, orient="h")
-    ax = sns.stripplot(data=input_df, color=".25",size=2, orient="h")
-    ax.set_xlabel('Instantaneous Velocity')
-    ax.set_yticklabels(input_df.columns, fontsize=5)
-    ax.tick_params(axis='x', labelrotation = 0, size=2)
-    ax.set_title(str(input_df), fontsize=11)
-    ax.set_ylabel('Genotypes')
-    # ax.yaxis.grid(True)
-    ax.axvline(input_df["w1118"].mean())
-    ax.xaxis.grid(True)
-    plt.show()
-
-def individual_plot(input_df):
-    fig, axs = plt.subplots(nrows=3, ncols=3, figsize=(12, 12))
-    plt.subplots_adjust(hspace=0.5)
-    fig.suptitle(" Instantaneous Velocity ({}s after food) distribution".format(time_thres), fontsize=18, y=0.95)
-
-    for genotype, ax in zip(list(input_df.columns), axs.ravel()):
-        newlist = [x for x in list(input_df[genotype]) if np.isnan(x) == False]
-
-        ax.plot(np.arange(0,len(newlist),1), newlist)
-        # ax.plot(np.arange(0,time_thres*24,1), [60]*time_thres*24) 
-        ax.set_title("{}".format(genotype),fontsize=9)
-        # ax.set_ylim(0,540)
-        # ax.set_xlim(0,len(input_df[genotype]))
-        ax.set_xlabel("")
-        ax.axvline(len(newlist)/2, color='red')
-        ticks = ax.get_xticks()
-        # ax.set_xticklabels(ticks)
 
 inst_vel_behav_all_dict={}
 inst_vel_behav_binned_all_dict={}
@@ -123,12 +69,16 @@ inst_vel_before_mean_all_dict={}
 inst_vel_diff_dict={}
 inst_vel_ratio_dict={}
 
+inst_vel_onesec_diff_dict={}
+inst_vel_onesec_ratio_dict={}
+
 inst_vel_after_binned_mean_all_dict={}
 inst_vel_before_binned_mean_all_dict={}
 inst_vel_diff_binned_dict={}
 inst_vel_ratio_binned_dict={}
 number_of_flies={}    
 
+max_vel=0
 for genotype in genotypelist:
                 
     print(genotype,starvation)
@@ -148,7 +98,9 @@ for genotype in genotypelist:
     inst_vel_after_mean_all=[]
     inst_vel_before_mean_all=[]
     inst_vel_diff_all=[]
-    inst_vel_ratio_all=[]        
+    inst_vel_ratio_all=[]
+    inst_vel_onesec_diff_all=[]
+    inst_vel_onesec_ratio_all=[]         
 
     inst_vel_after_binned_mean_all=[]
     inst_vel_before_binned_mean_all=[]
@@ -202,6 +154,9 @@ for genotype in genotypelist:
                 inst_vel_before=inst_vel_all[0:split_point_index]
                 inst_vel_after=inst_vel_all[split_point_index:len(inst_vel_all)]
                 
+                inst_vel_before_onesec=inst_vel_before[-24:] #taking just one second of data before food eating
+                inst_vel_after_onesec=inst_vel_after[0:24] #taking just one second of data after food eating
+                
                 if(split_point_index>time_thres*24 and split_point_index<(len(x_coord)-time_thres*24)):
                     inst_vel_before=inst_vel_before[len(inst_vel_before)-time_thres*24:]
                     inst_vel_after=inst_vel_after[0:time_thres*24]
@@ -225,6 +180,9 @@ for genotype in genotypelist:
                 inst_vel_diff_all.append(np.nanmean(inst_vel_after)-np.nanmean(inst_vel_before))
                 inst_vel_ratio_all.append(np.nanmean(inst_vel_after)/np.nanmean(inst_vel_before))
                 
+                inst_vel_onesec_diff_all.append(np.nanmean(inst_vel_after_onesec)-np.nanmean(inst_vel_before_onesec))
+                inst_vel_onesec_ratio_all.append(np.nanmean(inst_vel_after_onesec)/np.nanmean(inst_vel_before_onesec))
+                
                 inst_vel_after_binned_mean_all.append(np.nanmean(inst_vel_after_binned))  #Calculate the mean Instantenous Velocity and append to a list                 
                 inst_vel_before_binned_mean_all.append(np.nanmean(inst_vel_before_binned))
                 inst_vel_diff_binned_all.append(np.nanmean(inst_vel_after_binned)-np.nanmean(inst_vel_before_binned))
@@ -247,6 +205,10 @@ for genotype in genotypelist:
     inst_vel_diff_dict[genotype]=inst_vel_diff_all
     inst_vel_ratio_dict[genotype]=inst_vel_ratio_all
     
+    inst_vel_onesec_diff_dict[genotype]=inst_vel_onesec_diff_all
+    inst_vel_onesec_ratio_dict[genotype]=inst_vel_onesec_ratio_all
+    
+    
     inst_vel_after_binned_mean_all_dict[genotype]=inst_vel_after_binned_mean_all #Append the Mean Instantaneous Velocity LIST to Dictionary with the Corresponding Genotype
     inst_vel_before_binned_mean_all_dict[genotype]=inst_vel_before_binned_mean_all
     inst_vel_diff_binned_dict[genotype]=inst_vel_diff_binned_all
@@ -264,42 +226,40 @@ inst_vel_diff_all_df=dict_to_df(inst_vel_diff_dict)
 inst_vel_diff_all_binned_df=dict_to_df(inst_vel_diff_binned_dict)
 inst_vel_ratio_df=dict_to_df(inst_vel_ratio_dict)
 inst_vel_ratio_binned_df=dict_to_df(inst_vel_ratio_binned_dict)
-    
+
+inst_vel_onesec_diff_df=dict_to_df(inst_vel_onesec_diff_dict)
+inst_vel_onesec_ratio_df=dict_to_df(inst_vel_onesec_ratio_dict)    
+
+
+"""
+Converting dataframes to CSV files
+"""
+inst_vel_onesec_diff_df.to_csv("results\\inst_vel_onesec_diff_df.csv",index=False)
+inst_vel_onesec_ratio_df.to_csv("results\\inst_vel_onesec_ratio_df.csv",index=False)
+
+
+
 
 """
 Generating individual velocity graphs
 """
 
+# individual_plot_dict(inst_vel_behav_binned_all_dict)
 
-# rad_dist_mean_all_df.to_csv("results\\rad_dist_mean_all{}_df.csv".format(time_thres),index=False) #writing the df to a csv file
-# inst_vel_diff_all_df.to_csv("results\\inst_vel_diff_all_{}_df.csv".format(time_thres),index=False)
-# inst_vel_diff_all_binned_df.to_csv("results\\inst_vel_diff_all_binned_{}_df.csv".format(time_thres),index=False)
 
 
 
 """
-Here we generate comparative boxplots for genotypes, but mean only
+Here we generate comparative boxplots for genotypes
 """
-
-# custom_plot(inst_vel_ratio_binned_df)
-# fig.savefig('results\\inst_vel_{}seconds_means.png'.format(time_thres),format='png', dpi=600, bbox_inches = 'tight')
-    
-# fig, ax= plt.subplots()
-# ax.plot(np.arange(0,time_thres*24,1), inst_vel_after)
-# ax.plot(np.arange(0,1440,1) 
-# # ax.set_title("something",fontsize=9)
-# # ax.set_ylim(0,540)
-# ax.set_xlim(0,time_thres*24)
-# ax.set_xlabel("")
-
-# ticks = ax.get_xticks()/25
-# ax.set_xticklabels(ticks)
+# box_plot(inst_vel_onesec_ratio_df)
+# box_plot(inst_vel_onesec_diff_df)
+# ax.set_title("Ratio of Avg Speed one second after and before eating the food", fontsize=11)
 # plt.show()
 
-
-# """
-# This section is for plotting Raw Instantaneous velocity and deciding on the Kernel Size
-# """
+"""
+This section is for plotting Raw Instantaneous velocity and deciding on the Kernel Size
+"""
 
 # kernel_size = 10
 # kernel = np.ones(kernel_size) / kernel_size
@@ -443,3 +403,49 @@ Here we generate comparative boxplots for genotypes, but mean only
 # fig.savefig('results\\Ind_gen_qq_inst_vel.png',format='png', dpi=600, bbox_inches = 'tight')
 # plt.show()
 
+"""
+Trying manual input popup
+"""
+
+# from tkinter import *
+ 
+# root = Tk()
+# root.geometry("200x150")
+ 
+# frame = Frame(root)
+# frame.pack()
+ 
+# my_entry = Entry(frame, width = 20)
+# my_entry.insert(0,'Username')
+# my_entry.pack(padx = 5, pady = 5)
+ 
+# my_entry2 = Entry(frame, width = 15)
+# my_entry2.insert(0,'password')
+# my_entry2.pack(padx = 5, pady = 5)
+ 
+# root.mainloop()
+
+# from tkinter import *
+ 
+# def retrieve():
+#     return(my_entry.get())
+#     return(my_entry2.get())
+ 
+# root = Tk()
+# root.geometry("200x150")
+ 
+# frame = Frame(root)
+# frame.pack()
+ 
+# my_entry = Entry(frame, width = 20)
+# my_entry.insert(0,'Username')
+# my_entry.pack(padx = 5, pady = 5)
+ 
+# my_entry2 = Entry(frame, width = 15)
+# my_entry2.insert(0,'password')
+# my_entry2.pack(padx = 5, pady = 5)
+ 
+# Button = Button(frame, text = "Submit", command = retrieve)
+# Button.pack(padx = 5, pady = 5)
+ 
+# root.mainloop()
