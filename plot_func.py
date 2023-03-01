@@ -13,9 +13,18 @@ import glob
 import os
 import scipy.stats as stats
 import matplotlib.ticker as ticker
+import easygui as eg
 
 import tkinter as tk
 from tkinter import simpledialog
+
+def manual_title_labels():
+    msg = "Enter your personal information"
+    title = "Labelling of graph"
+    fieldNames = ["Graph Title","X-axis Label","Y-axis Label"]
+    fieldValues = []  # we start with blanks for the values
+    return eg.multenterbox(msg,title, fieldNames)
+
 
 def manual_title():
     ROOT = tk.Tk()
@@ -52,7 +61,7 @@ def box_plot(input_df):
     sns.set_style("white")
     ax = sns.boxplot(data=input_df, palette="Set3", showfliers = False, showmeans=False, linewidth=1, fliersize=3, orient="h")
     ax = sns.stripplot(data=input_df, color=".25",size=2, orient="h")
-    graph_title,x_label,y_label=manual_title()
+    graph_title,x_label,y_label=manual_title_labels()
     ax.set_xlabel(x_label)
     ax.set_yticklabels(input_df.columns, fontsize=5)
     ax.tick_params(axis='x', labelrotation = 0, size=2)
@@ -67,7 +76,7 @@ def individual_plot(input_df):
     fig, axs = plt.subplots(nrows=3, ncols=3, figsize=(12, 12))
     plt.subplots_adjust(hspace=0.5)
     
-    fig.suptitle(manual_title[0], fontsize=18, y=0.95)
+    fig.suptitle(manual_title_labels[0], fontsize=18, y=0.95)
 
     for genotype, ax in zip(list(input_df.columns), axs.ravel()):
         newlist = [x for x in list(input_df[genotype]) if np.isnan(x) == False]

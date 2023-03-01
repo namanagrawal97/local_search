@@ -37,6 +37,7 @@ import scipy.stats as stats
 import matplotlib.ticker as ticker
 
 from plot_func import *
+from conversion_func import *
 
 os.chdir('C:\\Users\\Yapicilab\\Dropbox\\screening') #SET THIS TO YOUR FOLDER WHERE YOU HAVE KEPT THE DATA FILES
 real_food_all=pd.read_csv('food_timing_screening.csv')
@@ -52,7 +53,7 @@ foodlist.remove('food_timing_screening.csv')
 foodlist.remove('results')
 foodlist.remove('bad_data') #Removes this genotype because there is some problem with this data
 genotypelist=foodlist
-# genotypelist=['ss27600']
+genotypelist=['ss34089']
 #USE THIS LINE OF CODE TO SET YOUR GENOTYPE.
 starvation="24"
 time_thres=60
@@ -234,8 +235,8 @@ inst_vel_onesec_ratio_df=dict_to_df(inst_vel_onesec_ratio_dict)
 """
 Converting dataframes to CSV files
 """
-inst_vel_onesec_diff_df.to_csv("results\\inst_vel_onesec_diff_df.csv",index=False)
-inst_vel_onesec_ratio_df.to_csv("results\\inst_vel_onesec_ratio_df.csv",index=False)
+# inst_vel_onesec_diff_df.to_csv("results\\inst_vel_onesec_diff_df.csv",index=False)
+# inst_vel_onesec_ratio_df.to_csv("results\\inst_vel_onesec_ratio_df.csv",index=False)
 
 
 
@@ -252,8 +253,8 @@ Generating individual velocity graphs
 """
 Here we generate comparative boxplots for genotypes
 """
-# box_plot(inst_vel_onesec_ratio_df)
-# box_plot(inst_vel_onesec_diff_df)
+box_plot(inst_vel_onesec_ratio_df)
+box_plot(inst_vel_onesec_diff_df)
 # ax.set_title("Ratio of Avg Speed one second after and before eating the food", fontsize=11)
 # plt.show()
 
