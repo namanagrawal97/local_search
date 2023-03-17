@@ -240,7 +240,7 @@ for genotype in genotypelist:
     inst_vel_behav_binned_all_dict[genotype]=inst_vel_behav_binned_df
     number_of_flies[genotype]=index
     
-    
+    individual_plot(inst_vel_behav_df)
     
     inst_vel_after_mean_all_dict[genotype]=inst_vel_after_mean_all #Append the Mean Instantaneous Velocity LIST to Dictionary with the Corresponding Genotype
     inst_vel_before_mean_all_dict[genotype]=inst_vel_before_mean_all
@@ -266,14 +266,35 @@ inst_vel_ratio_df=dict_to_df(inst_vel_ratio_dict)
 inst_vel_ratio_binned_df=dict_to_df(inst_vel_ratio_binned_dict)
     
 
-"""
-Generating individual velocity graphs
-"""
+
 
 
 # rad_dist_mean_all_df.to_csv("results\\rad_dist_mean_all{}_df.csv".format(time_thres),index=False) #writing the df to a csv file
 # inst_vel_diff_all_df.to_csv("results\\inst_vel_diff_all_{}_df.csv".format(time_thres),index=False)
 # inst_vel_diff_all_binned_df.to_csv("results\\inst_vel_diff_all_binned_{}_df.csv".format(time_thres),index=False)
+
+"""
+Generating individual velocity graphs
+"""
+
+fig, axs = plt.subplots(nrows=3, ncols=3, figsize=(12, 12))
+plt.subplots_adjust(hspace=0.5)
+fig.suptitle(" Instantaneous Velocity ({}s after food) distribution".format(time_thres), fontsize=18, y=0.95)
+
+for genotype, ax in zip(list(inst_vel_behav_df.columns), axs.ravel()):
+    newlist = [x for x in list(inst_vel_behav_df[genotype]) if np.isnan(x) == False]
+
+    ax.plot(np.arange(0,len(newlist),1), newlist)
+    # ax.plot(np.arange(0,time_thres*24,1), [60]*time_thres*24) 
+    ax.set_title("{}".format(genotype),fontsize=9)
+    # ax.set_ylim(0,540)
+    # ax.set_xlim(0,len(input_df[genotype]))
+    ax.set_xlabel("")
+    ax.axvline(len(newlist)/2, color='red')
+    ticks = ax.get_xticks()
+    
+    ax.set_xticklabels(np.arange(0,len(newlist),len(newlist)/24))
+
 
 
 
