@@ -15,7 +15,7 @@ import scipy.stats as stats
 import matplotlib.ticker as ticker
 from matplotlib.lines import Line2D
 from matplotlib import cm
-
+from plot_func import *
 
 diameter_of_arena=50.8 #in mm
 num_of_pixels=1080 #in both x and y axis
@@ -109,6 +109,111 @@ ax.xaxis.grid(False)
 plt.show()
 fig.savefig('inst_vel_diff_positives.svg',format='svg', dpi=600, bbox_inches = 'tight')
 
+
+"""
+Plotting Difference in Avg Speed One second before and after eating the food for all genotypes
+
+"""
+
+os.chdir('C:\\Users\\Yapicilab\\Dropbox\\Foraging screen') #SET THIS TO YOUR FOLDER WHERE YOU HAVE KEPT THE DATA FILES
+inst_vel_onesec_diff_df=pd.read_excel('inst_vel_onesec_diff_all_lines.xlsx')
+sorted_index_inst_vel_onesec_diff = inst_vel_onesec_diff_df.mean().sort_values().index
+inst_vel_onesec_diff_df=inst_vel_onesec_diff_df[sorted_index_inst_vel_onesec_diff]
+inst_vel_onesec_diff_df=inst_vel_onesec_diff_df.mul(conversion) #converting pix to mm
+
+fig, ax= plt.subplots(figsize=(16, 9))
+sns.set_style("white")
+ax = sns.boxplot(data=inst_vel_onesec_diff_df, palette=my_pal,showfliers = False, showmeans=True, linewidth=1, fliersize=3, orient="h", meanprops={"markersize":"2"})
+# ax = sns.stripplot(data=rad_dist_df, color=".25",size=2, orient="h")
+ax.legend(custom_lines, legend_lines, loc='upper right', prop={'size': 6})
+ax.set_xlabel('avg speed after - avg speed before (mm/s)')
+ax.set_yticklabels(inst_vel_onesec_diff_df.columns, fontsize=2)
+ax.tick_params(axis='x', labelrotation = 0, size=2)
+ax.set_title('Difference in Avg Speed One second before and after eating the food', fontsize=11)
+ax.set_ylabel('Genotypes')
+ax.yaxis.grid(False)
+ax.axvline(inst_vel_onesec_diff_df["w1118"].mean())
+ax.xaxis.grid(False)
+plt.show()
+fig.savefig('inst_vel_onesec_diff_all_lines.svg',format='svg', dpi=600, bbox_inches = 'tight')
+
+"""
+Plotting Difference in Avg Speed One second before and after eating the food for positives only
+
+"""
+
+inst_vel_onesec_diff_df_positives=inst_vel_onesec_diff_df[positives_all]
+sorted_index_inst_vel_onesec_diff_pos = inst_vel_onesec_diff_df_positives.mean().sort_values().index
+inst_vel_onesec_diff_df_positives=inst_vel_onesec_diff_df_positives[sorted_index_inst_vel_onesec_diff_pos]
+
+fig, ax= plt.subplots(figsize=(16, 9))
+sns.set_style("white")
+ax = sns.boxplot(data=inst_vel_onesec_diff_df_positives, palette=my_pal,showfliers = False, showmeans=True, linewidth=1, fliersize=3, orient="h", meanprops={"markersize":"2"})
+# ax = sns.stripplot(data=rad_dist_df, color=".25",size=2, orient="h")
+ax.legend(custom_lines, legend_lines, loc='upper right', prop={'size': 6})
+ax.set_xlabel('avg speed after - avg speed before (mm/s)')
+ax.set_yticklabels(inst_vel_onesec_diff_df_positives.columns, fontsize=2)
+ax.tick_params(axis='x', labelrotation = 0, size=2)
+ax.set_title('Difference in Avg Speed One second before and after eating the food', fontsize=11)
+ax.set_ylabel('Genotypes')
+ax.yaxis.grid(False)
+ax.axvline(inst_vel_onesec_diff_df_positives["w1118"].mean())
+ax.xaxis.grid(False)
+plt.show()
+fig.savefig('inst_vel_onesec_diff_positives.svg',format='svg', dpi=600, bbox_inches = 'tight')
+
+
+"""
+Plotting Ratio of Avg Speed One second before and after eating the food for all genotypes
+
+"""
+
+os.chdir('C:\\Users\\Yapicilab\\Dropbox\\Foraging screen') #SET THIS TO YOUR FOLDER WHERE YOU HAVE KEPT THE DATA FILES
+inst_vel_onesec_ratio_df=pd.read_excel('inst_vel_onesec_ratio_all_lines.xlsx')
+sorted_index_inst_vel_onesec_ratio = inst_vel_onesec_ratio_df.mean().sort_values().index
+inst_vel_onesec_ratio_df=inst_vel_onesec_ratio_df[sorted_index_inst_vel_onesec_ratio]
+inst_vel_onesec_ratio_df=inst_vel_onesec_ratio_df.mul(conversion) #converting pix to mm
+
+fig, ax= plt.subplots(figsize=(16, 9))
+sns.set_style("white")
+ax = sns.boxplot(data=inst_vel_onesec_ratio_df, palette=my_pal,showfliers = False, showmeans=True, linewidth=1, fliersize=3, orient="h", meanprops={"markersize":"2"})
+# ax = sns.stripplot(data=rad_dist_df, color=".25",size=2, orient="h")
+ax.legend(custom_lines, legend_lines, loc='upper right', prop={'size': 6})
+ax.set_xlabel('avg speed after / avg speed before ')
+ax.set_yticklabels(inst_vel_onesec_ratio_df.columns, fontsize=2)
+ax.tick_params(axis='x', labelrotation = 0, size=2)
+ax.set_title('Ratio of Avg Speed One second after and before eating the food', fontsize=11)
+ax.set_ylabel('Genotypes')
+ax.yaxis.grid(False)
+ax.axvline(inst_vel_onesec_ratio_df["w1118"].mean())
+ax.xaxis.grid(False)
+plt.show()
+fig.savefig('inst_vel_onesec_ratio_all_lines.svg',format='svg', dpi=600, bbox_inches = 'tight')
+
+"""
+Plotting Ratio of Avg Speed One second before and after eating the food for positives only
+
+"""
+
+inst_vel_onesec_ratio_df_positives=inst_vel_onesec_ratio_df[positives_all]
+sorted_index_inst_vel_onesec_ratio_pos = inst_vel_onesec_ratio_df_positives.mean().sort_values().index
+inst_vel_onesec_ratio_df_positives=inst_vel_onesec_ratio_df_positives[sorted_index_inst_vel_onesec_ratio_pos]
+
+fig, ax= plt.subplots(figsize=(16, 9))
+sns.set_style("white")
+ax = sns.boxplot(data=inst_vel_onesec_ratio_df_positives, palette=my_pal,showfliers = False, showmeans=True, linewidth=1, fliersize=3, orient="h", meanprops={"markersize":"2"})
+# ax = sns.stripplot(data=rad_dist_df, color=".25",size=2, orient="h")
+ax.legend(custom_lines, legend_lines, loc='upper right', prop={'size': 6})
+ax.set_xlabel('avg speed after / avg speed before ')
+ax.set_yticklabels(inst_vel_onesec_ratio_df_positives.columns, fontsize=2)
+ax.tick_params(axis='x', labelrotation = 0, size=2)
+ax.set_title('Ratio of Avg Speed One second after and before eating the food', fontsize=11)
+ax.set_ylabel('Genotypes')
+ax.yaxis.grid(False)
+ax.axvline(inst_vel_onesec_ratio_df_positives["w1118"].mean())
+ax.xaxis.grid(False)
+plt.show()
+fig.savefig('inst_vel_onesec_ratio_positives.svg',format='svg', dpi=600, bbox_inches = 'tight')
 
 """
 Plotting Avg Radial Distance after eating the food for all genotypes

@@ -39,14 +39,14 @@ real_food_all=pd.read_csv('food_timing_screening245.csv')
 
 
 foodlist=os.listdir()
-foodlist.remove('food_timing_screening245.xlsx')
+# foodlist.remove('food_timing_screening.xlsx')
 foodlist.remove('food_timing_screening245.csv')
 
 foodlist.remove('results')
 # foodlist.remove('bad_data') #Removes this genotype because there is some problem with this data
 
 genotypelist=foodlist
-# genotypelist=["ss32119"]
+genotypelist=["ss49430","ss32361","ss50701","ss41446"]
 #USE THIS LINE OF CODE TO SET YOUR GENOTYPE.
 starvation="24"
 time_list=[60]
@@ -267,7 +267,8 @@ for time_thres in time_list:
     
     
     # rad_dist_mean_all_df.to_csv("results\\rad_dist_mean_all{}_df.csv".format(time_thres),index=False) #writing the df to a csv file
-    inst_vel_mean_all_df.to_csv("results\\inst_vel_mean_all{}_df.csv".format(time_thres),index=False)
+    # inst_vel_mean_all_df.to_csv("results\\inst_vel_mean_all{}_df.csv".format(time_thres),index=False)
+    # tot_dist_df.to_csv("results\\tot_dist_df_{}_df.csv".format(time_thres),index=False)
 
     # """
     # PLOTTING
