@@ -31,24 +31,41 @@ import matplotlib.ticker as ticker
 from mpl_toolkits import mplot3d
 
 
-os.chdir('C:\\Users\\Yapicilab\\Dropbox\\screening-2') #SET THIS TO YOUR FOLDER WHERE YOU HAVE KEPT THE DATA FILES
-real_food_all=pd.read_csv('food_timing_screening245.csv')
+
+os.chdir('E:\\Dropbox\\yeast_starvation') #SET THIS TO YOUR FOLDER WHERE YOU HAVE KEPT THE DATA FILES
+real_food_all=pd.read_csv('food_timing_yeast_starvation.csv')
 
 
-# starvationlist=["16","24"]
+starvationlist=["0","8","16","24","32"]
+# starvationlist=["0"]
 
 
 foodlist=os.listdir()
-# foodlist.remove('food_timing_screening.xlsx')
-foodlist.remove('food_timing_screening245.csv')
+foodlist.remove('food_timing_yeast_starvation.csv')
+foodlist.remove('food_timing_sugar.csv')
 
+foodlist.remove('food_timing_yeast_starvation.xlsx')
 foodlist.remove('results')
-# foodlist.remove('bad_data') #Removes this genotype because there is some problem with this data
+foodlist.remove('bad_data')
+# foodlist.remove('water')
 
+# foodlist.remove('w1118')
+# foodlist.remove('ss39947') #Removes this genotype because there is some problem with this data
 genotypelist=foodlist
-genotypelist=["ss49430","ss32361","ss50701","ss41446"]
-#USE THIS LINE OF CODE TO SET YOUR GENOTYPE.
-starvation="24"
+
+
+genotypelist=["10mM","100mM","500mM","1M"]
+# genotypelist=["1yeast","5yeast","10yeast"]
+
+
+ #Removes this genotype because there is some problem with this data
+# genotypelist=foodlist
+diameter_of_arena=50.8 #in mm
+num_of_pixels=1080
+
+conversion=diameter_of_arena/num_of_pixels
+
+# starvation="24"
 time_list=[60]
 
 # time_thres=60
@@ -60,8 +77,17 @@ def find_index(l,t): #This function helps us find indexes
             break
         else:
             continue
+def count_jumps(sequence):
+    count = 0
+    for i in range(len(sequence)-1):
+        if sequence[i+1] - sequence[i] >= 12:
+            count += 1
+    return count
+def find_distance_below_threshold(distances, threshold):
+    below_threshold_indices = [i for i, distance in enumerate(distances) if distance <= threshold]
+    return below_threshold_indices
 
-
+i=0#initializing counter
 for time_thres in time_list: 
     
     inst_vel_dict={}
@@ -81,130 +107,148 @@ for time_thres in time_list:
     number_of_flies={}
     tort_coeff_dict={}
     
-    for genotype in genotypelist:
-                    
-        print(genotype,starvation)
-        fnames = sorted(glob.glob(genotype+'/'+'*.csv')) #Enter the genotype folder and "24" folder
-        index=0 #Counter for counting the number of iterations
-        
-        real_food_df=real_food_all[real_food_all['genotype']==genotype] #Extracts data for this genotype from Manual labels of first food eating labels
-        # real_food_df=real_food_df[real_food_df['starvation']==int(starvation)]
-        real_food_bout_list=list(real_food_df['final_first_bout'])
-        
-        inst_vel_all=[]
-        rad_dist_all=[] #Lists to store all the raw data
-        tot_dist_all=[]
-        tort_coeff_all=[]
-        
-        inst_vel_median_all=[]
-        rad_dist_median_all=[] #Lists to store the medians of data
-        tot_dist_median_all=[]
-        
-        inst_vel_mean_all=[]
-        rad_dist_mean_all=[] #Lists to store the means of data
-        tot_dist_mean_all=[]
-        
-        for u in fnames: #goes through files in the folder.
-            
-            """
-            Loading the data into a dataframe
-            """
-            
-            df=pd.read_csv(u, header=None)
-            # print("before",df.shape[1])
-            # df=df.dropna(axis=1,thresh=20000)
-            # print("after",df.shape[1])
-            if(df.shape[1]==10):
-                data_header = ['Time', 'Latency', 'Fx1', 'Fy1', 'Fx2', 'Fy2', 'Fx3', 'Fy3','Fx4','Fy4']
-            elif(df.shape[1]==8):
-                data_header = ['Time', 'Latency', 'Fx1', 'Fy1', 'Fx2', 'Fy2', 'Fx3', 'Fy3']
-            elif(df.shape[1]==6):
-                 data_header = ['Time', 'Latency', 'Fx1', 'Fy1', 'Fx2', 'Fy2']
-            elif(df.shape[1]==4):
-                 data_header = ['Time', 'Latency', 'Fx1', 'Fy1']
-            df.columns=data_header
-            
-            latency=list(df['Latency']) #Just making a list for Latency, which is the second column in our data csv files. We dont use this anywhere.
-            latency[0]=0 #Usually the latency of the first observation is really high, so we manually set it to zero.
-            
-            df['Time']=df['Time']-round(df['Time'][0]) #Since our experiment begins after 2 minutes, we subtract this time from the data
-            
-            for i in range(2,len(data_header),2):
-                index=index+1
-                first_bout_time=real_food_bout_list[index-1] #Extracting the first bout time from manual annotation and storing it in a variable
-                if (first_bout_time==2000):
-                    continue
-                else:
-                    pass
-    
-                    time=list(df['Time'])
-                    split_point_index=find_index(time, first_bout_time)
-                    print(index,first_bout_time,split_point_index)
-                    
-                    x_coord=list(df[data_header[i]])
-                    y_coord=list(df[data_header[i+1]])
-                    del x_coord[0:split_point_index] #Delete data from time=0 to time= First eating bout
-                    del y_coord[0:split_point_index]
-                    
-                    inst_vel=list(np.zeros_like(x_coord)) #create an empty list
-                    rad_dist=list(np.zeros_like(x_coord)) #create an empty list
-                    distance_travelled=list(np.zeros_like(x_coord)) #create an empty list
-                    
-                    for j in range(0,len(x_coord)-1,1):
-                        rad_dist[j]=np.sqrt((x_coord[j]-540)**2+(y_coord[j]-540)**2) #Calculate Radial Distance
-                        inst_vel[j]=np.sqrt((x_coord[j+1]-x_coord[j])**2+(y_coord[j+1]-y_coord[j])**2)/latency[j+1] #Calculate Instantenous Velocity
-                        distance_travelled[j]=np.sqrt((x_coord[j+1]-x_coord[j])**2+(y_coord[j+1]-y_coord[j])**2) #Calculate Total Distance Travelled
-                    
-                    wall_touching_point=find_index(rad_dist, 520)  #Here I find the time point at which the fly first touched the wall after eating food
-                    if wall_touching_point is None:    
-                        wall_touching_point=len(rad_dist)-1
-                    else:
-                        wall_touching_point=wall_touching_point
-                    print(wall_touching_point)
-                    tort_distance=distance_travelled
-                    displacement=np.sqrt((x_coord[-1]-x_coord[0])**2+(y_coord[-1]-y_coord[0])**2)
-                    
-                    del distance_travelled[wall_touching_point:-1] #Delete data from the Total_Distance list after fly has touched wall
-                    del tort_distance[time_thres*24:-1]
-                    del rad_dist[time_thres*24:-1] #Delete everything after declared time
-                    del inst_vel[time_thres*24:-1]
-                    rad_dist.pop() #Remove the last element which is somehow always 0
-                    inst_vel.pop() #Remove the last element which is somehow always 0
-                    total_distance_travelled=np.nansum(distance_travelled) 
-                    
-                    tort=np.sum(tort_distance)/displacement
-                    
-                    rad_dist_median_all.append(np.median(rad_dist)) #Calculate the median radial distance and append to a list
-                    inst_vel_median_all.append(np.median(inst_vel)) #Calculate the median Instantenous Velocity and append to a list
-    
-                    rad_dist_mean_all.append(np.nanmean(rad_dist))  #Calculate the mean radial distance and append to a list
-                    inst_vel_mean_all.append(np.nanmean(inst_vel))  #Calculate the mean Instantenous Velocity and append to a list                 
-                    
-                    rad_dist_all.extend(rad_dist) #Append the Radial Distance list to one huge raw data list
-                    inst_vel_all.extend(inst_vel) #Append the Instantaneous Velocity list to one huge raw data list
-                    tot_dist_all.append(total_distance_travelled) #Append the Total Distance Travelled list to one huge raw data list
-                    tort_coeff_all.append(tort)
-                    
-                    inst_vel_all = [x for x in inst_vel_all if np.isnan(x) == False]
-                    rad_dist_all = [x for x in rad_dist_all if np.isnan(x) == False] #Clean NaNs from the huge list
-                    tot_dist_all = [x for x in tot_dist_all if np.isnan(x) == False]                
-        
-        number_of_flies[genotype]=index
+    compiled_df=pd.DataFrame(columns=['genotype','starvation','rad_dist','inst_vel','tort_coeff','tot_dist','foodvisits_60','foodvisits_full'])
+    compiled_mean_df=pd.DataFrame(columns=['genotype','starvation','rad_dist','inst_vel','tot_dist'])
 
-        inst_vel_dict[genotype]=inst_vel_all #Append the huge raw data list to Dictionary with the Corresponding Genotype  
-        rad_dist_dict[genotype]=rad_dist_all
-        tot_dist_dict[genotype]=tot_dist_all
-        tort_coeff_dict[genotype]=tort_coeff_all
-        
-        inst_vel_med_dict[genotype]=np.median(inst_vel_all) #Just taking the median of the huge raw data list and appending it to another dictionary
-        rad_dist_med_dict[genotype]=np.median(rad_dist_all) 
-        tot_dist_med_dict[genotype]=np.median(tot_dist_all)    
     
-        rad_dist_med_all_dict[genotype]=rad_dist_median_all #Append the Median Radial Distance LIST to Dictionary with the Corresponding Genotype
-        inst_vel_med_all_dict[genotype]=inst_vel_median_all #Append the Median Instantaneous Velocity LIST to Dictionary with the Corresponding Genotype
+    for genotype in genotypelist:
+        for starvation in starvationlist:                    
+            i=i+1
+            flies=0
+            print(genotype,starvation)
+            fnames = sorted(glob.glob(genotype+'/'+'*.csv'))
+            fnames = sorted(glob.glob(genotype+'/' + starvation +'/'+'*.csv')) #Enter the genotype folder and "24" folder
+            index=0 #Counter for counting the number of iterations
+            
+            real_food_df=real_food_all[real_food_all['genotype']==genotype] #Extracts data for this genotype from Manual labels of first food eating labels
+            real_food_df=real_food_df[real_food_df['starvation']==int(starvation)]
+            real_food_bout_list=list(real_food_df['final_first_bout'])
+            
+            inst_vel_all=[]
+            rad_dist_all=[] #Lists to store all the raw data
+            tot_dist_all=[]
+            tort_coeff_all=[]
+            
+            inst_vel_median_all=[]
+            rad_dist_median_all=[] #Lists to store the medians of data
+            tot_dist_median_all=[]
+            
+            inst_vel_mean_all=[]
+            rad_dist_mean_all=[] #Lists to store the means of data
+            tot_dist_mean_all=[]
+            
+            for u in fnames: #goes through files in the folder.
+                
+                """
+                Loading the data into a dataframe
+                """
+                
+                df=pd.read_csv(u, header=None)
+                # print("before",df.shape[1])
+                # df=df.dropna(axis=1,thresh=20000)
+                # print("after",df.shape[1])
+                if(df.shape[1]==10):
+                    data_header = ['Time', 'Latency', 'Fx1', 'Fy1', 'Fx2', 'Fy2', 'Fx3', 'Fy3','Fx4','Fy4']
+                elif(df.shape[1]==8):
+                    data_header = ['Time', 'Latency', 'Fx1', 'Fy1', 'Fx2', 'Fy2', 'Fx3', 'Fy3']
+                elif(df.shape[1]==6):
+                     data_header = ['Time', 'Latency', 'Fx1', 'Fy1', 'Fx2', 'Fy2']
+                elif(df.shape[1]==4):
+                     data_header = ['Time', 'Latency', 'Fx1', 'Fy1']
+                df.columns=data_header
+                
+                latency=list(df['Latency']) #Just making a list for Latency, which is the second column in our data csv files. We dont use this anywhere.
+                latency[0]=0 #Usually the latency of the first observation is really high, so we manually set it to zero.
+                
+                df['Time']=df['Time']-round(df['Time'][0]) #Since our experiment begins after 2 minutes, we subtract this time from the data
+                
+                for i in range(2,len(data_header),2):
+                    index=index+1
+                    first_bout_time=real_food_bout_list[index-1] #Extracting the first bout time from manual annotation and storing it in a variable
+                    if (first_bout_time==2000):
+                        continue
+                        flies=flies+0
+                    else:
+                        pass
+                        flies=flies+1
+                        time=list(df['Time'])
+                        split_point_index=find_index(time, first_bout_time)
+                        print(index,first_bout_time,split_point_index)
+                        
+                        x_coord=list(df[data_header[i]])
+                        y_coord=list(df[data_header[i+1]])
+                        del x_coord[0:split_point_index] #Delete data from time=0 to time= First eating bout
+                        del y_coord[0:split_point_index]
+                        
+                        inst_vel_full=list(np.zeros_like(x_coord)) #create an empty list
+                        rad_dist_full=list(np.zeros_like(x_coord)) #create an empty list
+                        distance_travelled_full=list(np.zeros_like(x_coord)) #create an empty list
+                        
+                        for j in range(0,len(x_coord)-1,1):
+                            rad_dist_full[j]=np.sqrt((x_coord[j]-540)**2+(y_coord[j]-540)**2) #Calculate Radial Distance
+                            inst_vel_full[j]=np.sqrt((x_coord[j+1]-x_coord[j])**2+(y_coord[j+1]-y_coord[j])**2)/latency[j+1] #Calculate Instantenous Velocity
+                            distance_travelled_full[j]=np.sqrt((x_coord[j+1]-x_coord[j])**2+(y_coord[j+1]-y_coord[j])**2) #Calculate Total Distance Travelled
+                        
+                        wall_touching_point=find_index(rad_dist_full, 520)  #Here I find the time point at which the fly first touched the wall after eating food
+                        if wall_touching_point is None:    
+                            wall_touching_point=len(rad_dist_full)-1
+                        else:
+                            wall_touching_point=wall_touching_point
+                        print(wall_touching_point)
+                        tort_distance=distance_travelled_full
+                        displacement=np.sqrt((x_coord[-1]-x_coord[0])**2+(y_coord[-1]-y_coord[0])**2)
+                        
+                        rad_dist=rad_dist_full[0:time_thres*24]
+                        distance_travelled=distance_travelled_full[0:time_thres*24]
+                        tort_distance=tort_distance[0:time_thres*24]
+                        inst_vel=inst_vel_full[0:time_thres*24]
+                        
+                        # del distance_travelled[wall_touching_point:-1] #Delete data from the Total_Distance list after fly has touched wall
+                        # del tort_distance[time_thres*24:-1]
+                        # del rad_dist[time_thres*24:-1] #Delete everything after declared time
+                        # del inst_vel[time_thres*24:-1]
+                        # rad_dist.pop() #Remove the last element which is somehow always 0
+                        # inst_vel.pop() #Remove the last element which is somehow always 0
+                        total_distance_travelled=np.nansum(distance_travelled) 
+                        
+                        tort=np.sum(tort_distance)/displacement
+                        
+                        rad_dist_median_all.append(np.median(rad_dist)) #Calculate the median radial distance and append to a list
+                        inst_vel_median_all.append(np.median(inst_vel)) #Calculate the median Instantenous Velocity and append to a list
         
-        rad_dist_mean_all_dict[genotype]=rad_dist_mean_all #Append the Mean Radial Distance LIST to Dictionary with the Corresponding Genotype
-        inst_vel_mean_all_dict[genotype]=inst_vel_mean_all #Append the Mean Instantaneous Velocity LIST to Dictionary with the Corresponding Genotype
+                        rad_dist_mean_all.append(np.nanmean(rad_dist))  #Calculate the mean radial distance and append to a list
+                        inst_vel_mean_all.append(np.nanmean(inst_vel))  #Calculate the mean Instantenous Velocity and append to a list                 
+                        
+                        compiled_df=compiled_df.append({'genotype':genotype,'starvation':starvation,'fly_num':index,'rad_dist':np.nanmean(rad_dist),'inst_vel':np.nanmean(inst_vel),'tort_coeff':tort,'tot_dist':total_distance_travelled, 'foodvisits_60':count_jumps(find_distance_below_threshold(rad_dist,60)),'foodvisits_full':count_jumps(find_distance_below_threshold(rad_dist_full,60))},ignore_index=True)
+
+                        
+                        rad_dist_all.extend(rad_dist) #Append the Radial Distance list to one huge raw data list
+                        inst_vel_all.extend(inst_vel) #Append the Instantaneous Velocity list to one huge raw data list
+                        tot_dist_all.append(total_distance_travelled) #Append the Total Distance Travelled list to one huge raw data list
+                        tort_coeff_all.append(tort)
+                        
+                        inst_vel_all = [x for x in inst_vel_all if np.isnan(x) == False]
+                        rad_dist_all = [x for x in rad_dist_all if np.isnan(x) == False] #Clean NaNs from the huge list
+                        tot_dist_all = [x for x in tot_dist_all if np.isnan(x) == False]                
+        
+            number_of_flies[genotype]=index
+    
+            inst_vel_dict[genotype]=inst_vel_all #Append the huge raw data list to Dictionary with the Corresponding genotype+starvation  
+            rad_dist_dict[genotype]=rad_dist_all
+            tot_dist_dict[genotype]=tot_dist_all
+            tort_coeff_dict[genotype]=tort_coeff_all
+            
+            inst_vel_med_dict[genotype]=np.median(inst_vel_all) #Just taking the median of the huge raw data list and appending it to another dictionary
+            rad_dist_med_dict[genotype]=np.median(rad_dist_all) 
+            tot_dist_med_dict[genotype]=np.median(tot_dist_all)    
+        
+            rad_dist_med_all_dict[genotype]=rad_dist_median_all #Append the Median Radial Distance LIST to Dictionary with the Corresponding Genotype
+            inst_vel_med_all_dict[genotype]=inst_vel_median_all #Append the Median Instantaneous Velocity LIST to Dictionary with the Corresponding Genotype
+            
+            rad_dist_mean_all_dict[genotype]=rad_dist_mean_all #Append the Mean Radial Distance LIST to Dictionary with the Corresponding Genotype
+            inst_vel_mean_all_dict[genotype]=inst_vel_mean_all #Append the Mean Instantaneous Velocity LIST to Dictionary with the Corresponding Genotype
+            
+            compiled_mean_df=compiled_mean_df.append({'genotype':genotype,'starvation':starvation,'rad_dist':np.nanmean(rad_dist_mean_all),'rad_dist_var':np.nanvar(rad_dist_mean_all),'inst_vel':np.nanmean(inst_vel_mean_all),'tot_dist':np.nanmean(tot_dist_all),'tot_flies':flies},ignore_index=True)
             
     "All radial distance and inst velocity raw data"
     
@@ -266,9 +310,12 @@ for time_thres in time_list:
     tort_coeff_all_df=tort_coeff_all_df[sorted_index_tort]
     
     
-    # rad_dist_mean_all_df.to_csv("results\\rad_dist_mean_all{}_df.csv".format(time_thres),index=False) #writing the df to a csv file
-    # inst_vel_mean_all_df.to_csv("results\\inst_vel_mean_all{}_df.csv".format(time_thres),index=False)
+    rad_dist_mean_all_df.to_csv("results\\rad_dist_mean_all{}_df.csv".format(time_thres),index=False) #writing the df to a csv file
+    inst_vel_mean_all_df.to_csv("results\\inst_vel_mean_all{}_df.csv".format(time_thres),index=False)
+    
     # tot_dist_df.to_csv("results\\tot_dist_df_{}_df.csv".format(time_thres),index=False)
+    compiled_df.to_csv("results\\compiled_{}_df.csv".format(time_thres),index=False)
+
 
     # """
     # PLOTTING
@@ -373,7 +420,7 @@ for time_thres in time_list:
     # ax.yaxis.grid(True)
     ax.xaxis.grid(True)
     plt.show()
-    # fig.savefig('results\\radial_distance_{}seconds_means.png'.format(time_thres),format='png', dpi=600, bbox_inches = 'tight')
+    fig.savefig('results\\radial_distance_{}seconds_means.png'.format(time_thres),format='png', dpi=600, bbox_inches = 'tight')
     
     fig, ax= plt.subplots()
     sns.set_style("white")
@@ -387,7 +434,7 @@ for time_thres in time_list:
     # ax.yaxis.grid(True)
     ax.xaxis.grid(True)
     plt.show()
-    # fig.savefig('results\\inst_vel_{}seconds_means.png'.format(time_thres),format='png', dpi=600, bbox_inches = 'tight')
+    fig.savefig('results\\inst_vel_{}seconds_means.png'.format(time_thres),format='png', dpi=600, bbox_inches = 'tight')
     
     fig, ax= plt.subplots()
     sns.set_style("white")
@@ -459,6 +506,70 @@ Trying to do 3D plotting with Radial Distance, Instantaneous Velocity and Total 
 #     ax.set(ylabel=None)
 # # fig.savefig('results\\Ind_gen_distb_inst_vel.png',format='png', dpi=600, bbox_inches = 'tight')
 # plt.show()
+
+"""
+Trying to plot heatmap
+"""
+
+
+
+rad_dist_heat = pd.pivot_table(compiled_mean_df, values='rad_dist', index=['starvation'], columns=['genotype'])
+rad_dist_heat = rad_dist_heat[genotypelist]
+rad_dist_heat = rad_dist_heat.reindex(starvationlist)
+rad_dist_heat=rad_dist_heat.mul(conversion)
+
+rad_dist_var_heat = pd.pivot_table(compiled_mean_df, values='rad_dist_var', index=['starvation'], columns=['genotype'])
+rad_dist_var_heat = rad_dist_var_heat[genotypelist]
+rad_dist_var_heat = rad_dist_var_heat.reindex(starvationlist)
+rad_dist_var_heat=rad_dist_var_heat.mul(conversion**2)
+
+def add_var(x):
+    return "var=" + str(round(x, 2))
+
+annot_var_heat = rad_dist_var_heat.round(2).applymap(add_var)
+
+tot_flies_heat = pd.pivot_table(compiled_mean_df, values='tot_flies', index=['starvation'], columns=['genotype'])
+tot_flies_heat = tot_flies_heat[genotypelist]
+tot_flies_heat = tot_flies_heat.reindex(starvationlist)
+
+def add_n(x):
+    return "n=" + str(int(x))
+
+annot_tot_flies_heat = tot_flies_heat.applymap(add_n)
+
+fig,ax=plt.subplots()
+ax=sns.heatmap(rad_dist_heat,annot=False, cmap='YlOrRd')
+ax=sns.heatmap(rad_dist_heat,annot=annot_var_heat, annot_kws={'va':'bottom'},fmt="", cbar=False, cmap='YlOrRd')
+ax=sns.heatmap(rad_dist_heat,annot=annot_tot_flies_heat, annot_kws={'va':'top'},fmt="", cbar=False, cmap='YlOrRd')
+
+
+# Add axis labels and title
+ax.set_xlabel('Food Provided')
+ax.set_ylabel('Starvation Level')
+ax.set_title('Average Radial Distance (in mm) 60 seconds after eating food')
+fig.savefig('results\\sugar_heatmap_rad_dist.png',format='png', dpi=600, bbox_inches = 'tight')
+plt.show()
+
+
+# inst_vel_heat = pd.pivot_table(compiled_mean_df, values='inst_vel', index=['starvation'], columns=['genotype'])
+# inst_vel_heat = inst_vel_heat[['1yeast', '5yeast', '10yeast']]
+# inst_vel_heat = inst_vel_heat.reindex(starvationlist)
+# inst_vel_heat=inst_vel_heat.mul(conversion)
+
+# fig,ax=plt.subplots()
+# ax=sns.heatmap(inst_vel_heat, cmap='YlOrRd')
+
+# # Add axis labels and title
+# ax.set_xlabel('Food Provided')
+# ax.set_ylabel('Starvation Level')
+# ax.set_title('Average Speed (in mm/s) 60 seconds after eating food')
+# # fig.savefig('results\\SUGAR_heatmap_inst_vel.png',format='png', dpi=600, bbox_inches = 'tight')
+# # plt.show()
+# # Show the plot
+# plt.show()
+
+
+
 
 
 
